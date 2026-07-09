@@ -1,3 +1,14 @@
+# Komelia-pickled — Komelia + provider configuration UI
+
+This fork of [Komelia](https://github.com/Snd-R/Komelia) adds configuration UI for five extra KOMF metadata providers:
+German, SpecYAML, ChaikaFile, Gallery-DL, HDoujin.
+
+Version: `0.19.0-pickled` — Web extension: `2.0.6`
+
+Parent repo: [Baine/komf-pickled](https://github.com/Baine/komf-pickled)
+
+---
+
 # Komelia - Komga media client
 
 ### Downloads:
