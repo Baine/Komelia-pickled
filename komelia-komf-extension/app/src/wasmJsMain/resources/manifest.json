@@ -5,7 +5,8 @@
   },
   "name": "Komf",
   "description": "",
-  "version": "0.2.3",
+  "version": "2.0.6",
+  "version_name": "2.0.6",
   "action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"

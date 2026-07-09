@@ -675,6 +675,7 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
                 is AniListConfigState -> AniListProviderSettings(state)
                 is MangaDexConfigState -> MangaDexProviderSettings(state)
                 is MangaBakaConfigState -> MangaBakaProviderSettings(state)
+                is SpecYAMLConfigState -> SpecYAMLProviderSettings(state)
             }
 
         }
@@ -737,6 +738,20 @@ private class ProviderSettingsTab(private val state: ProviderConfigState) : Dial
             label = { Text("Datasource type") },
             inputFieldModifier = Modifier.fillMaxWidth()
         )
+    }
+
+    @Composable
+    private fun SpecYAMLProviderSettings(state: SpecYAMLConfigState) {
+        HorizontalDivider()
+
+        Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            ChipFieldWithSuggestions(
+                label = { Text("Media roots (directories to scan for .yaml files)") },
+                values = state.mediaRoots,
+                onValuesChange = state::onMediaRootsChange,
+                suggestions = emptyList()
+            )
+        }
     }
 }
 

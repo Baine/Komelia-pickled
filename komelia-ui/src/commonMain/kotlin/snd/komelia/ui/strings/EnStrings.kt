@@ -262,6 +262,7 @@ val EnStrings = AppStrings(
             providerBangumi = "Bangumi",
             providerBookWalker = "Bookwalker Global",
             providerComicVine = "ComicVine",
+            providerGerman = "German",
             providerHentag = "Hentag",
             providerKodansha = "Kodansha US",
             providerMal = "MyAnimeList",
@@ -272,6 +273,10 @@ val EnStrings = AppStrings(
             providerYenPress = "YenPress",
             providerViz = "Viz",
             providerWebtoons = "Webtoons",
+            providerChaikaFile = "ChaikaFile",
+            providerHdoujin = "HDoujin",
+            providerSpecYaml = "SpecYAML",
+            providerGalleryDl = "Gallery-DL",
         )
     ),
     imageSettings = ImageSettingsStrings(

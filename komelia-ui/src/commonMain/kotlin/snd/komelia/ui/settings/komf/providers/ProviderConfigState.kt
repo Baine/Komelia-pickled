@@ -33,6 +33,8 @@ import snd.komf.api.config.MangaDexConfigUpdateRequest
 import snd.komf.api.config.ProviderConf
 import snd.komf.api.config.ProviderConfigUpdateRequest
 import snd.komf.api.config.SeriesMetadataConfigUpdateRequest
+import snd.komf.api.config.SpecYAMLConfigDto
+import snd.komf.api.config.SpecYAMLConfigUpdateRequest
 
 sealed class ProviderConfigState(
     config: ProviderConf?,
@@ -483,4 +485,50 @@ class MangaBakaConfigState(
 
     override fun onArtistRolesSave(roles: List<KomfAuthorRole>) =
         onMetadataUpdate(MangaBakaConfigUpdateRequest(artistRoles = Some(roles)))
+}
+
+class SpecYAMLConfigState(
+    provider: KomfProviders,
+    config: SpecYAMLConfigDto?,
+    private val onMetadataUpdate: (SpecYAMLConfigUpdateRequest) -> Unit,
+) : ProviderConfigState(config, provider) {
+
+    var mediaRoots by mutableStateOf(config?.mediaRoots ?: emptyList())
+        private set
+
+    fun onMediaRootsChange(mediaRoots: List<String>) {
+        this.mediaRoots = mediaRoots
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(mediaRoots = Some(mediaRoots)))
+    }
+
+    override fun onPrioritySave(priority: Int) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(priority = Some(priority)))
+
+    override fun onEnabledSave(enabled: Boolean) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(enabled = Some(enabled)))
+
+    override fun onSeriesMetadataSave(metadata: SeriesMetadataConfigUpdateRequest) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(seriesMetadata = Some(metadata)))
+
+    override fun onBookMetadataSave(metadata: BookMetadataConfigUpdateRequest) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(bookMetadata = Some(metadata)))
+
+    override fun onMediaTypeSave(mediaType: KomfMediaType?) =
+        onMetadataUpdate(
+            SpecYAMLConfigUpdateRequest(
+                mediaType = mediaType
+                    ?.let { Some(it) } ?: PatchValue.None))
+
+    override fun onNameMatchingModeSave(nameMatchingMode: KomfNameMatchingMode?) =
+        onMetadataUpdate(
+            SpecYAMLConfigUpdateRequest(
+                nameMatchingMode = nameMatchingMode
+                    ?.let { Some(nameMatchingMode) } ?: PatchValue.None
+            ))
+
+    override fun onAuthorRolesSave(roles: List<KomfAuthorRole>) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(authorRoles = Some(roles)))
+
+    override fun onArtistRolesSave(roles: List<KomfAuthorRole>) =
+        onMetadataUpdate(SpecYAMLConfigUpdateRequest(artistRoles = Some(roles)))
 }

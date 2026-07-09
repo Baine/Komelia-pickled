@@ -79,6 +79,7 @@ data class KomfProviderSettingsStrings(
     val providerBangumi: String,
     val providerBookWalker: String,
     val providerComicVine: String,
+    val providerGerman: String,
     val providerHentag: String,
     val providerKodansha: String,
     val providerMal: String,
@@ -89,6 +90,10 @@ data class KomfProviderSettingsStrings(
     val providerYenPress: String,
     val providerViz: String,
     val providerWebtoons: String,
+    val providerChaikaFile: String,
+    val providerHdoujin: String,
+    val providerSpecYaml: String,
+    val providerGalleryDl: String,
 
     ) {
 
@@ -98,6 +103,7 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.BANGUMI -> providerBangumi
             KomfCoreProviders.BOOK_WALKER -> providerBookWalker
             KomfCoreProviders.COMIC_VINE -> providerComicVine
+            KomfCoreProviders.GERMAN -> providerGerman
             KomfCoreProviders.HENTAG -> providerHentag
             KomfCoreProviders.KODANSHA -> providerKodansha
             KomfCoreProviders.MAL -> providerMal
@@ -108,6 +114,10 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.VIZ -> providerViz
             KomfCoreProviders.MANGA_BAKA -> providerMangaBaka
             KomfCoreProviders.WEBTOONS -> providerWebtoons
+            KomfCoreProviders.CHAIKA_FILE -> providerChaikaFile
+            KomfCoreProviders.HDOUJIN -> providerHdoujin
+            KomfCoreProviders.SPEC_YAML -> providerSpecYaml
+            KomfCoreProviders.GALLERY_DL -> providerGalleryDl
             is UnknownKomfProvider -> provider.name
         }
 }
