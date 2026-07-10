@@ -7,6 +7,7 @@ import coil3.memory.MemoryCache
 import io.ktor.client.*
 import io.ktor.client.engine.js.*
 import io.ktor.client.plugins.*
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -82,9 +83,11 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): DependencyContaine
             localStorageRepository::saveEpubReaderSettings
         )
     )
+    val komfSettings = localStorageRepository.getKomfSettings()
+        .copy(remoteUrl = window.location.origin)
     val komfSettingsRepository = KomfSettingsRepositoryWrapper(
         SettingsStateWrapper(
-            localStorageRepository.getKomfSettings(),
+            komfSettings,
             localStorageRepository::saveKomfSettings
         )
     )
