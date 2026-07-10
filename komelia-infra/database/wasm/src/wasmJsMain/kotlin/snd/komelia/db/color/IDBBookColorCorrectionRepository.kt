@@ -2,10 +2,10 @@ package snd.komelia.db.color
 
 import Database
 import com.juul.indexeddb.external.IDBKey
-import io.github.snd_r.komelia.color.BookColorLevels
-import io.github.snd_r.komelia.color.ColorCurveBookPoints
-import io.github.snd_r.komelia.color.repository.BookColorCorrectionRepository
-import io.github.snd_r.komelia.ui.color.ColorCorrectionType
+import snd.komelia.color.BookColorLevels
+import snd.komelia.color.ColorCurveBookPoints
+import snd.komelia.color.repository.BookColorCorrectionRepository
+import snd.komelia.color.ColorCorrectionType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged

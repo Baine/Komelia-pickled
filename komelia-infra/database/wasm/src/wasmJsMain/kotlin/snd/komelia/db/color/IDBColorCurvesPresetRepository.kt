@@ -2,8 +2,8 @@ package snd.komelia.db.color
 
 import Database
 import com.juul.indexeddb.external.IDBKey
-import io.github.snd_r.komelia.color.ColorCurvePreset
-import io.github.snd_r.komelia.color.repository.ColorCurvePresetRepository
+import snd.komelia.color.ColorCurvePreset
+import snd.komelia.color.repository.ColorCurvePresetRepository
 import snd.komelia.db.color.jsModel.JsColorCurvePreset
 import snd.komelia.db.color.jsModel.toColorCurvePreset
 import snd.komelia.db.color.jsModel.toJs

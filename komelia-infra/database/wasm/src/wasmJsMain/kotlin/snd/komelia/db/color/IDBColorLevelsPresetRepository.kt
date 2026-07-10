@@ -2,8 +2,8 @@ package snd.komelia.db.color
 
 import Database
 import com.juul.indexeddb.external.IDBKey
-import io.github.snd_r.komelia.color.ColorLevelsPreset
-import io.github.snd_r.komelia.color.repository.ColorLevelsPresetRepository
+import snd.komelia.color.ColorLevelsPreset
+import snd.komelia.color.repository.ColorLevelsPresetRepository
 import snd.komelia.db.color.jsModel.JsColorLevelsPreset
 import snd.komelia.db.color.jsModel.toColorLevelsPreset
 import snd.komelia.db.color.jsModel.toJs

@@ -76,6 +76,9 @@ kotlin {
             implementation(libs.kotlinx.browser)
             implementation(projects.komeliaInfra.imageDecoder.wasmImageWorker)
             implementation(projects.komeliaInfra.database.wasm)
+            implementation(projects.thirdParty.indexeddb.core)
+            implementation(libs.filekit.core)
+            implementation(libs.kotlinx.datetime)
         }
     }
 }

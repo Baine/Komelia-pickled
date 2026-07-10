@@ -1,6 +1,6 @@
 package snd.komelia.db.settings
 
-import io.github.snd_r.komelia.image.UpsamplingMode
+import snd.komelia.image.UpsamplingMode
 import kotlinx.browser.localStorage
 import kotlinx.serialization.json.Json
 import org.w3c.dom.set
