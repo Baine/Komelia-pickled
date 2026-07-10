@@ -20,11 +20,12 @@ import kotlin.math.roundToInt
     val padding =
         ((constraints.maxWidth - (navWidth + contentWidth)).toFloat() / 2).roundToInt().coerceAtLeast(0)
 
+    val contentMaxWidth = (constraints.maxWidth - navWidth).coerceAtLeast(0)
     val contentPlaceable = contentMeasurable.first()
         .measure(
             constraints.copy(
                 minWidth = 0,
-                maxWidth = padding + contentWidth.coerceAtMost(constraints.maxWidth - navWidth)
+                maxWidth = padding + contentWidth.coerceAtMost(contentMaxWidth)
             )
         )
 
