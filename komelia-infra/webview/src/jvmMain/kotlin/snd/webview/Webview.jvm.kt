@@ -8,7 +8,6 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.async
 import kotlinx.coroutines.future.asCompletableFuture
 import kotlinx.coroutines.launch
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import snd.jni.Managed
 import snd.jni.NativePointer
@@ -141,13 +140,6 @@ actual class KomeliaWebview private constructor(
         @JvmStatic
         private external fun destroy(ptr: Long)
     }
-}
-
-fun interface WebviewCallback {
-    fun run(id: String, request: String)
-
-    @Serializable
-    data class CallbackResponse<T>(val result: T)
 }
 
 fun interface RequestInterceptorCallback {
