@@ -110,10 +110,10 @@ abstract class AppModule {
             .cookieStorage(cookiesStorage)
             .build()
 
-        val komfClientFactory = KomfClientFactory.Builder()
-            .baseUrl { komfUrl.value }
-            .ktor(ktor)
-            .build()
+        val komfClientFactory = KomfClientFactory(
+            baseUrl = { komfUrl.value },
+            ktor = ktor,
+        )
 
         val imageDecoder = createImageDecoder()
 

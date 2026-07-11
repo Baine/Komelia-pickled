@@ -163,16 +163,6 @@ tasks.register<Sync>("android-aarch64_copyJniLibs") {
     include { it.name in dependencies }
 }
 
-tasks.register<Sync>("android-arm64_copyJniLibs") {
-    group = "jni"
-    dependsOn(":komelia-infra:database:sqlite:android-arm64-ExtractSqliteLib")
-
-    from("$androidArm64BuildDir/sysroot/lib/")
-    into("$androidJniLibsDir/arm64-v8a/")
-    val dependencies = androidLibs
-    include { it.name in dependencies }
-}
-
 tasks.register<Sync>("android-armv7a_copyJniLibs") {
     group = "jni"
     dependsOn(":komelia-infra:database:sqlite:android-armv7a-ExtractSqliteLib")

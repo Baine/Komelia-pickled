@@ -128,10 +128,10 @@ suspend fun initDependencies(stateFlowScope: CoroutineScope): DependencyContaine
         .baseUrl { baseUrl.value }
         .build()
 
-    val komfClientFactory = KomfClientFactory.Builder()
-        .baseUrl { komfUrl.value }
-        .ktor(ktorClient)
-        .build()
+    val komfClientFactory = KomfClientFactory(
+        baseUrl = { komfUrl.value },
+        ktor = ktorClient,
+    )
 
     val offlineBookRepo = WasmOfflineBookRepository()
     val isOffline = MutableStateFlow(false)
