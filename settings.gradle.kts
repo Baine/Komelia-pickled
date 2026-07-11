@@ -42,12 +42,4 @@ include(":komelia-komf-extension:background")
 include(":komelia-komf-extension:popup")
 include(":komelia-komf-extension:shared")
 
-include(":third_party:ChipTextField:chiptextfield-core")
-include(":third_party:ChipTextField:chiptextfield-m3")
-include(":third_party:compose-sonner:sonner")
-include(":third_party:indexeddb:core")
-include(":third_party:indexeddb:external")
 
-includeBuild("third_party/secret-service") {
-    dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
-}

@@ -54,8 +54,8 @@ kotlin {
             api(projects.komeliaInfra.onnxruntime.api)
             implementation(projects.komeliaInfra.webview)
             implementation(projects.komeliaInfra.database.transaction)
-            implementation(projects.thirdParty.chipTextField.chiptextfieldM3)
-            implementation(projects.thirdParty.composeSonner.sonner)
+            implementation(libs.chiptextfield.m3)
+            implementation(libs.compose.sonner)
 
             api(libs.compose.runtime)
             api(libs.compose.foundation)

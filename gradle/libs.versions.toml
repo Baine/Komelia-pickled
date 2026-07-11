@@ -1,6 +1,10 @@
 [versions]
 app-version = "0.19.0"
 agp = "8.13.2"
+chiptextfield = "0.7.2-alpha01"
+compose-sonner = "0.3.9"
+indexeddb = "0.12.0"
+secret-service = "3.0.0-beta"
 android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "36"
@@ -68,7 +72,11 @@ compose-materialIconsExtended = { module = "org.jetbrains.compose.material:mater
 compose-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "compose-multiplatform" }
 
 cache4k = { module = "io.github.reactivecircus.cache4k:cache4k", version.ref = "cache4k" }
+chiptextfield = { module = "io.github.dokar3:chiptextfield", version.ref = "chiptextfield" }
+chiptextfield-m3 = { module = "io.github.dokar3:chiptextfield-m3", version.ref = "chiptextfield" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
+compose-sonner = { module = "io.github.dokar3:sonner", version.ref = "compose-sonner" }
+indexeddb-core = { module = "com.juul.indexeddb:core", version.ref = "indexeddb" }
 coil-compose = { module = "io.coil-kt.coil3:coil-compose", version.ref = "coil" }
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil" }
 commons-compress = { module = "org.apache.commons:commons-compress", version.ref = "commons-compress" }
@@ -114,7 +122,7 @@ protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf-lite" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 richEditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richEditor" }
-secret-service = { module = "de.swiesend:secret-service" }
+secret-service = { module = "de.swiesend:secret-service", version.ref = "secret-service" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlite-xerial-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }

@@ -27,7 +27,7 @@ kotlin {
             implementation(projects.komeliaDomain.core)
             implementation(projects.komeliaInfra.database.shared)
             implementation(projects.komeliaInfra.imageDecoder.shared)
-            implementation(projects.thirdParty.indexeddb.core)
+            implementation(libs.indexeddb.core)
         }
     }
 }
