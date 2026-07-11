@@ -38,6 +38,8 @@ val androidJniLibsDir = "$projectDir/komelia-infra/jni/src/androidMain/jniLibs"
 val composeDistroResourcesDir = "$projectDir/komelia-app/desktopUnpackedResources"
 val composeCommonResources = "$projectDir/komelia-ui/src/commonMain/composeResources/files"
 
+val npmExecutable = if (Os.isFamily(Os.FAMILY_WINDOWS)) "npm.cmd" else "npm"
+
 val epubReader = "$rootDir/komelia-epub-reader"
 val epubReaderKomga = "$epubReader/komga-webui"
 val epubReaderTtsu = "$epubReader/ttu-ebook-reader"
@@ -153,42 +155,20 @@ tasks.register<Sync>("linux-x86_64_copyJniLibs") {
 }
 
 
-tasks.register<Sync>("android-aarch64_copyJniLibs") {
-    group = "jni"
-    dependsOn(":komelia-infra:database:sqlite:android-arm64-ExtractSqliteLib")
-
-    from("$androidArm64BuildDir/sysroot/lib/")
-    into("$androidJniLibsDir/arm64-v8a/")
-    val dependencies = androidLibs
-    include { it.name in dependencies }
-}
-
-tasks.register<Sync>("android-armv7a_copyJniLibs") {
-    group = "jni"
-    dependsOn(":komelia-infra:database:sqlite:android-armv7a-ExtractSqliteLib")
-
-    from("$androidArmv7aBuildDir/sysroot/lib/")
-    into("$androidJniLibsDir/armeabi-v7a/")
-    val dependencies = androidLibs
-    include { it.name in dependencies }
-}
-
-tasks.register<Sync>("android-x86_64_copyJniLibs") {
-    group = "jni"
-    dependsOn(":komelia-infra:database:sqlite:android-x86_64-ExtractSqliteLib")
-    from("$androidx8664BuildDir/sysroot/lib/")
-    into("$androidJniLibsDir/x86_64/")
-    val dependencies = androidLibs
-    include { it.name in dependencies }
-}
-
-tasks.register<Sync>("android-x86_copyJniLibs") {
-    group = "jni"
-    dependsOn(":komelia-infra:database:sqlite:android-x86-ExtractSqliteLib")
-    from("$androidx86BuildDir/sysroot/lib/")
-    into("$androidJniLibsDir/x86/")
-    val dependencies = androidLibs
-    include { it.name in dependencies }
+mapOf(
+    "aarch64" to (androidArm64BuildDir to "arm64-v8a"),
+    "armv7a" to (androidArmv7aBuildDir to "armeabi-v7a"),
+    "x86_64" to (androidx8664BuildDir to "x86_64"),
+    "x86" to (androidx86BuildDir to "x86"),
+).forEach { (suffix, config) ->
+    tasks.register<Sync>("android-${suffix}_copyJniLibs") {
+        group = "jni"
+        dependsOn(":komelia-infra:database:sqlite:android-$suffix-ExtractSqliteLib")
+        from("${config.first}/sysroot/lib/")
+        into("$androidJniLibsDir/${config.second}/")
+        val dependencies = androidLibs
+        include { it.name in dependencies }
+    }
 }
 
 tasks.register<Delete>("cleanJni") {
@@ -235,69 +215,27 @@ tasks.register<Sync>("windows-x86_64_copyJniLibsComposeResources") {
 }
 
 
-tasks.register<Exec>("komgaNpmInstall") {
+fun npmInstallTask(name: String, dir: String) = tasks.register<Exec>(name) {
     group = "web"
-    workingDir(epubReaderKomga)
-    inputs.file("$epubReaderKomga/package.json")
-    outputs.dir("$epubReaderKomga/node_modules")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "install",
-    )
+    workingDir(dir)
+    inputs.file("$dir/package.json")
+    outputs.dir("$dir/node_modules")
+    commandLine(npmExecutable, "install")
 }
 
-tasks.register<Exec>("komgaNpmBuild") {
+fun npmBuildTask(name: String, dir: String, installTask: String) = tasks.register<Exec>(name) {
     group = "web"
-    dependsOn("komgaNpmInstall")
-    workingDir(epubReaderKomga)
-    inputs.dir(epubReaderKomga)
-    outputs.dir("$epubReaderKomga/dist")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "run",
-        "build",
-    )
+    dependsOn(installTask)
+    workingDir(dir)
+    inputs.dir(dir)
+    outputs.dir("$dir/dist")
+    commandLine(npmExecutable, "run", "build")
 }
 
-tasks.register<Exec>("ttsuNpmInstall") {
-    group = "web"
-    workingDir(epubReaderTtsu)
-    inputs.file("$epubReaderTtsu/package.json")
-    outputs.dir("$epubReaderTtsu/node_modules")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "install",
-    )
-}
-
-tasks.register<Exec>("ttsuNpmBuild") {
-    group = "web"
-    dependsOn("ttsuNpmInstall")
-    workingDir(epubReaderTtsu)
-    inputs.dir(epubReaderTtsu)
-    outputs.dir("$epubReaderTtsu/dist")
-    commandLine(
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            "npm.cmd"
-        } else {
-            "npm"
-        },
-        "run",
-        "build",
-    )
-}
+val komgaNpmInstall = npmInstallTask("komgaNpmInstall", epubReaderKomga)
+val komgaNpmBuild = npmBuildTask("komgaNpmBuild", epubReaderKomga, "komgaNpmInstall")
+val ttsuNpmInstall = npmInstallTask("ttsuNpmInstall", epubReaderTtsu)
+val ttsuNpmBuild = npmBuildTask("ttsuNpmBuild", epubReaderTtsu, "ttsuNpmInstall")
 
 tasks.register<Sync>("buildWebui") {
     group = "web"

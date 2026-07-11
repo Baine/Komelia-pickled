@@ -11,19 +11,17 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineThumbnailBookTable
 import snd.komelia.offline.book.model.OfflineThumbnailBook
 import snd.komelia.offline.book.repository.OfflineThumbnailBookRepository
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.common.KomgaThumbnailId
 
-class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedRepository(database),
-    OfflineThumbnailBookRepository {
+class ExposedOfflineThumbnailBookRepository(private val database: Database) :  OfflineThumbnailBookRepository {
     private val thumbnailTable = OfflineThumbnailBookTable
 
     override suspend fun save(thumbnail: OfflineThumbnailBook) {
-        transaction {
+        transaction(database) {
             thumbnailTable.upsert {
                 it[thumbnailTable.id] = thumbnail.id.value
                 it[thumbnailTable.bookId] = thumbnail.bookId.value
@@ -40,7 +38,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun find(id: KomgaThumbnailId): OfflineThumbnailBook? {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll()
                 .where { thumbnailTable.id.eq(id.value) }
                 .firstOrNull()
@@ -49,7 +47,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun findSelectedByBookId(bookId: KomgaBookId): OfflineThumbnailBook? {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll()
                 .where {
                     thumbnailTable.bookId.eq(bookId.value)
@@ -62,7 +60,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun findAllByBookId(bookId: KomgaBookId): List<OfflineThumbnailBook> {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll()
                 .where { thumbnailTable.bookId.eq(bookId.value) }
                 .map { it.toModel() }
@@ -73,7 +71,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
         bookId: KomgaBookId,
         type: Collection<OfflineThumbnailBook.Type>
     ): List<OfflineThumbnailBook> {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll().where {
                 thumbnailTable.bookId.eq(bookId.value)
                     .and { thumbnailTable.type.inList(type.map { it.name }) }
@@ -82,7 +80,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun markSelected(thumbnail: OfflineThumbnailBook) {
-        transaction {
+        transaction(database) {
 
             thumbnailTable.update({
                 thumbnailTable.bookId.eq(thumbnail.bookId.value)
@@ -97,7 +95,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun delete(id: KomgaThumbnailId) {
-        return transaction {
+        return transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.id.eq(id.value) }
         }
@@ -107,7 +105,7 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
         id: KomgaBookId,
         type: OfflineThumbnailBook.Type
     ) {
-        transaction {
+        transaction(database) {
             thumbnailTable.deleteWhere {
                 thumbnailTable.bookId.eq(id.value)
                     .and { thumbnailTable.type.eq(type.name) }
@@ -116,14 +114,14 @@ class ExposedOfflineThumbnailBookRepository(database: Database) : ExposedReposit
     }
 
     override suspend fun deleteAllBy(id: KomgaBookId) {
-        transaction {
+        transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.bookId.eq(id.value) }
         }
     }
 
     override suspend fun deleteByBookIds(bookIds: Collection<KomgaBookId>) {
-        transaction {
+        transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.bookId.inList(bookIds.map { it.value }) }
         }

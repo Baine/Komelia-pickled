@@ -7,7 +7,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineSeriesTable
 import snd.komelia.offline.series.model.OfflineSeries
 import snd.komelia.offline.series.repository.OfflineSeriesRepository
@@ -15,12 +14,12 @@ import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.time.Instant
 
-class ExposedOfflineSeriesRepository(database: Database) : ExposedRepository(database), OfflineSeriesRepository {
+class ExposedOfflineSeriesRepository(private val database: Database) :  OfflineSeriesRepository {
 
     private val seriesTable = OfflineSeriesTable
 
     override suspend fun save(series: OfflineSeries) {
-        transaction {
+        transaction(database) {
             seriesTable.upsert {
                 it[seriesTable.id] = series.id.value
                 it[seriesTable.libraryId] = series.libraryId.value
@@ -41,7 +40,7 @@ class ExposedOfflineSeriesRepository(database: Database) : ExposedRepository(dat
     }
 
     override suspend fun find(id: KomgaSeriesId): OfflineSeries? {
-        return transaction {
+        return transaction(database) {
             seriesTable.selectAll().where { seriesTable.id.eq(id.value) }
                 .firstOrNull()
                 ?.toModel()
@@ -49,7 +48,7 @@ class ExposedOfflineSeriesRepository(database: Database) : ExposedRepository(dat
     }
 
     override suspend fun findAllByLibraryId(libraryId: KomgaLibraryId): List<OfflineSeries> {
-        return transaction {
+        return transaction(database) {
             seriesTable.selectAll()
                 .where { seriesTable.libraryId.eq(libraryId.value) }
                 .map { it.toModel() }
@@ -57,13 +56,13 @@ class ExposedOfflineSeriesRepository(database: Database) : ExposedRepository(dat
     }
 
     override suspend fun delete(id: KomgaSeriesId) {
-        transaction {
+        transaction(database) {
             seriesTable.deleteWhere { seriesTable.id.eq(id.value) }
         }
     }
 
     override suspend fun delete(seriesids: List<KomgaSeriesId>) {
-        transaction {
+        transaction(database) {
             seriesTable.deleteWhere { seriesTable.id.inList(seriesids.map { it.value }) }
         }
     }

@@ -8,7 +8,6 @@ import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineSeriesMetadataAlternateTitleTable
 import snd.komelia.db.offline.tables.OfflineSeriesMetadataGenreTable
 import snd.komelia.db.offline.tables.OfflineSeriesMetadataLinkTable
@@ -24,10 +23,10 @@ import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.series.KomgaSeriesStatus
 
 class ExposedOfflineSeriesMetadataRepository(
-    database: Database
-) : ExposedRepository(database), OfflineSeriesMetadataRepository {
+    private val database: Database
+) :  OfflineSeriesMetadataRepository {
     override suspend fun save(metadata: OfflineSeriesMetadata) {
-        transaction {
+        transaction(database) {
             OfflineSeriesMetadataTable.upsert {
                 it[OfflineSeriesMetadataTable.seriesId] = metadata.seriesId.value
                 it[OfflineSeriesMetadataTable.status] = metadata.status.name
@@ -102,7 +101,7 @@ class ExposedOfflineSeriesMetadataRepository(
     }
 
     override suspend fun find(id: KomgaSeriesId): OfflineSeriesMetadata? {
-        return transaction {
+        return transaction(database) {
             val seriesResult =
                 OfflineSeriesMetadataTable.selectAll().where { OfflineSeriesMetadataTable.seriesId.eq(id.value) }
                     .firstOrNull() ?: return@transaction null
@@ -148,7 +147,7 @@ class ExposedOfflineSeriesMetadataRepository(
         }
 
     override suspend fun delete(id: KomgaSeriesId) {
-        transaction {
+        transaction(database) {
             OfflineSeriesMetadataGenreTable.deleteWhere { OfflineSeriesMetadataGenreTable.seriesId.eq(id.value) }
             OfflineSeriesMetadataTagTable.deleteWhere { OfflineSeriesMetadataTagTable.seriesId.eq(id.value) }
             OfflineSeriesMetadataSharingTable.deleteWhere { OfflineSeriesMetadataSharingTable.seriesId.eq(id.value) }
@@ -161,7 +160,7 @@ class ExposedOfflineSeriesMetadataRepository(
     }
 
     override suspend fun delete(seriesIds: List<KomgaSeriesId>) {
-        transaction {
+        transaction(database) {
             val ids = seriesIds.map { it.value }
             OfflineSeriesMetadataGenreTable.deleteWhere { OfflineSeriesMetadataGenreTable.seriesId.inList(ids) }
             OfflineSeriesMetadataTagTable.deleteWhere { OfflineSeriesMetadataTagTable.seriesId.inList(ids) }

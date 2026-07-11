@@ -24,7 +24,6 @@ import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.conditions.BookSearchHelper
 import snd.komelia.db.offline.conditions.RequiredJoin
 import snd.komelia.db.offline.offset
@@ -63,8 +62,8 @@ import snd.komga.client.user.KomgaUserId
 import kotlin.time.Instant
 
 class ExposedOfflineBookDtoRepository(
-    database: Database
-) : OfflineBookDtoRepository, ExposedRepository(database) {
+    private val database: Database
+) : OfflineBookDtoRepository {
 
     private val bookTable = OfflineBookTable
     private val mediaTable = OfflineMediaTable
@@ -135,7 +134,7 @@ class ExposedOfflineBookDtoRepository(
         search: KomgaBookSearch,
         pageRequest: KomgaPageRequest
     ): Page<KomeliaBook> {
-        return transaction {
+        return transaction(database) {
             val (conditions, joins) = BookSearchHelper(userId).toCondition(search.condition)
             findAll(
                 conditions = conditions,
@@ -243,7 +242,7 @@ class ExposedOfflineBookDtoRepository(
         bookId: KomgaBookId,
         userId: KomgaUserId
     ): KomeliaBook? {
-        return transaction {
+        return transaction(database) {
             selectBase(userId)
                 .where { bookTable.id.eq(bookId.value) }
                 .fetchAndMap()
@@ -255,7 +254,7 @@ class ExposedOfflineBookDtoRepository(
         bookId: KomgaBookId,
         userId: KomgaUserId
     ): KomeliaBook? {
-        return transaction {
+        return transaction(database) {
             findSiblingSeries(bookId, userId, next = false)
         }
     }
@@ -264,7 +263,7 @@ class ExposedOfflineBookDtoRepository(
         bookId: KomgaBookId,
         userId: KomgaUserId
     ): KomeliaBook? {
-        return transaction {
+        return transaction(database) {
             findSiblingSeries(bookId, userId, next = true)
         }
     }
@@ -275,7 +274,7 @@ class ExposedOfflineBookDtoRepository(
         filterOnLibraryIds: Collection<KomgaLibraryId>?,
         pageRequest: KomgaPageRequest
     ): Page<KomeliaBook> {
-        return transaction {
+        return transaction(database) {
 
             val librariesCondition = serverLibrariesCondition(userId)
             val countUnread: Sum<Int> = Sum(

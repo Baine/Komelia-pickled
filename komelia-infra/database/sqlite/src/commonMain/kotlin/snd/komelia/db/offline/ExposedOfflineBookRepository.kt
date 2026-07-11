@@ -17,7 +17,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineBookMetadataTable
 import snd.komelia.db.offline.tables.OfflineBookTable
 import snd.komelia.db.offline.tables.OfflineReadProgressTable
@@ -31,14 +30,14 @@ import snd.komga.client.user.KomgaUserId
 import java.sql.SQLException
 import kotlin.time.Instant
 
-class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, ExposedRepository(database) {
+class ExposedOfflineBookRepository(private val database: Database) : OfflineBookRepository {
 
     private val bookTable = OfflineBookTable
     private val bookMetadataTable = OfflineBookMetadataTable
     private val readProgressTable = OfflineReadProgressTable
 
     override suspend fun save(book: OfflineBook) {
-        transaction {
+        transaction(database) {
             bookTable.upsert {
                 it[bookTable.id] = book.id.value
                 it[bookTable.seriesId] = book.seriesId.value
@@ -65,7 +64,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun find(id: KomgaBookId): OfflineBook? {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .selectAll()
                 .where { bookTable.id.eq(id.value) }
@@ -75,7 +74,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun exists(id: KomgaBookId): Boolean {
-        return transaction {
+        return transaction(database) {
             val existsOp = Exists(bookTable.select(bookTable.id).where { bookTable.id.eq(id.value) })
             val result = Table.Dual
                 .select(existsOp)
@@ -86,7 +85,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findAllIdsBySeriesId(seriesId: KomgaSeriesId): List<KomgaBookId> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .select(bookTable.id)
                 .where { bookTable.seriesId.eq(seriesId.value) }
@@ -95,7 +94,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findAllIdsByLibraryId(libraryId: KomgaLibraryId): List<KomgaBookId> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .select(bookTable.id)
                 .where { bookTable.libraryId.eq(libraryId.value) }
@@ -104,7 +103,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findIn(ids: Collection<KomgaBookId>): List<OfflineBook> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .selectAll()
                 .where { bookTable.id.inList(ids.map { it.value }) }
@@ -113,7 +112,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findFirstIdInSeriesOrNull(seriesId: KomgaSeriesId): KomgaBookId? {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .join(
                     otherTable = bookMetadataTable,
@@ -132,7 +131,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findLastIdInSeriesOrNull(seriesId: KomgaSeriesId): KomgaBookId? {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .join(
                     otherTable = bookMetadataTable,
@@ -154,7 +153,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
         seriesId: KomgaSeriesId,
         userId: KomgaUserId
     ): KomgaBookId? {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .join(
                     otherTable = bookMetadataTable,
@@ -184,7 +183,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findAllBySeriesIds(seriesIds: List<KomgaSeriesId>): List<OfflineBook> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .selectAll()
                 .where { bookTable.seriesId.inList(seriesIds.map { it.value }) }
@@ -193,7 +192,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findAll(id: KomgaSeriesId): List<OfflineBook> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .selectAll()
                 .where { bookTable.seriesId.eq(id.value) }
@@ -202,7 +201,7 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun findAllNotDeleted(id: KomgaSeriesId): List<OfflineBook> {
-        return transaction {
+        return transaction(database) {
             bookTable
                 .selectAll()
                 .where {
@@ -214,13 +213,13 @@ class ExposedOfflineBookRepository(database: Database) : OfflineBookRepository, 
     }
 
     override suspend fun delete(id: KomgaBookId) {
-        transaction {
+        transaction(database) {
             bookTable.deleteWhere { bookTable.id.eq(id.value) }
         }
     }
 
     override suspend fun delete(ids: Collection<KomgaBookId>) {
-        transaction {
+        transaction(database) {
             bookTable.deleteWhere { bookTable.id.inList(ids.map { it.value }) }
         }
     }

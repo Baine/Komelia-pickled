@@ -11,19 +11,17 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineThumbnailSeriesTable
 import snd.komelia.offline.series.model.OfflineThumbnailSeries
 import snd.komelia.offline.series.repository.OfflineThumbnailSeriesRepository
 import snd.komga.client.common.KomgaThumbnailId
 import snd.komga.client.series.KomgaSeriesId
 
-class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepository(database),
-    OfflineThumbnailSeriesRepository {
+class ExposedOfflineThumbnailSeriesRepository(private val database: Database) :  OfflineThumbnailSeriesRepository {
     private val thumbnailTable = OfflineThumbnailSeriesTable
 
     override suspend fun save(thumbnail: OfflineThumbnailSeries) {
-        transaction {
+        transaction(database) {
             thumbnailTable.upsert {
                 it[thumbnailTable.id] = thumbnail.id.value
                 it[thumbnailTable.seriesId] = thumbnail.seriesId.value
@@ -40,7 +38,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
     }
 
     override suspend fun find(thumbnailId: KomgaThumbnailId): OfflineThumbnailSeries? {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll()
                 .where { thumbnailTable.id.eq(thumbnailId.value) }
                 .firstOrNull()
@@ -49,7 +47,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
     }
 
     override suspend fun findSelectedBySeriesId(seriesId: KomgaSeriesId): OfflineThumbnailSeries? {
-        return transaction {
+        return transaction(database) {
             val res = thumbnailTable.selectAll()
                 .where {
                     thumbnailTable.seriesId.eq(seriesId.value)
@@ -63,7 +61,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
     }
 
     override suspend fun findAllBySeriesId(seriesId: KomgaSeriesId): List<OfflineThumbnailSeries> {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll()
                 .where { thumbnailTable.seriesId.eq(seriesId.value) }
                 .map { it.toModel() }
@@ -74,7 +72,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
         seriesId: KomgaSeriesId,
         type: OfflineThumbnailSeries.Type,
     ): List<OfflineThumbnailSeries> {
-        return transaction {
+        return transaction(database) {
             thumbnailTable.selectAll().where {
                 thumbnailTable.seriesId.eq(seriesId.value)
                     .and { thumbnailTable.type.eq(type.name) }
@@ -83,7 +81,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
     }
 
     override suspend fun markSelected(thumbnail: OfflineThumbnailSeries) {
-        transaction {
+        transaction(database) {
 
             thumbnailTable.update({
                 thumbnailTable.seriesId.eq(thumbnail.seriesId.value)
@@ -98,7 +96,7 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
     }
 
     override suspend fun delete(thumbnailSeriesId: KomgaThumbnailId) {
-        return transaction {
+        return transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.id.eq(thumbnailSeriesId.value) }
         }
@@ -106,14 +104,14 @@ class ExposedOfflineThumbnailSeriesRepository(database: Database) : ExposedRepos
 
 
     override suspend fun deleteBySeriesId(seriesId: KomgaSeriesId) {
-        transaction {
+        transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.seriesId.eq(seriesId.value) }
         }
     }
 
     override suspend fun deleteBySeriesIds(seriesIds: List<KomgaSeriesId>) {
-        transaction {
+        transaction(database) {
             thumbnailTable
                 .deleteWhere { thumbnailTable.seriesId.inList(seriesIds.map { it.value }) }
         }

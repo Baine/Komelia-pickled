@@ -24,7 +24,6 @@ kotlin {
             implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.serialization.json)
             implementation(libs.ktor.client.js)
-//            implementation(projects.komeliaCore)
             implementation(projects.komeliaInfra.database.shared)
             implementation(projects.komeliaInfra.database.wasm)
         }

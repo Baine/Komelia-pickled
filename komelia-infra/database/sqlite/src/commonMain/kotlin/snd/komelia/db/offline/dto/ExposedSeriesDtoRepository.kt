@@ -18,7 +18,6 @@ import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.conditions.RequiredJoin
 import snd.komelia.db.offline.conditions.SeriesSearchHelper
 import snd.komelia.db.offline.offset
@@ -54,8 +53,8 @@ import snd.komga.client.user.KomgaUserId
 import kotlin.time.Instant
 
 class ExposedSeriesDtoRepository(
-    database: Database
-) : OfflineSeriesDtoRepository, ExposedRepository(database) {
+    private val database: Database
+) : OfflineSeriesDtoRepository {
     private val seriesTable = OfflineSeriesTable
     private val seriesMetaTable = OfflineSeriesMetadataTable
     private val seriesProgressTable = OfflineReadProgressSeriesTable
@@ -95,7 +94,7 @@ class ExposedSeriesDtoRepository(
         seriesId: KomgaSeriesId,
         userId: KomgaUserId
     ): KomgaSeries? {
-        return transaction {
+        return transaction(database) {
             selectBase(userId)
                 .where { seriesTable.id.eq(seriesId.value) }
                 .groupBy(*groupFields.toTypedArray())
@@ -156,7 +155,7 @@ class ExposedSeriesDtoRepository(
         userId: KomgaUserId,
         pageRequest: KomgaPageRequest,
     ): Page<KomgaSeries> {
-        return transaction {
+        return transaction(database) {
 
             val count = seriesTable
                 .join(

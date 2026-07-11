@@ -11,7 +11,6 @@ import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.update
 import org.jetbrains.exposed.v1.jdbc.updateReturning
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineTaskTable
 import snd.komelia.offline.tasks.model.TaskEntry
 import snd.komelia.offline.tasks.model.TaskEntry.TaskStatus
@@ -19,13 +18,13 @@ import snd.komelia.offline.tasks.model.TaskEntry.TaskStatus.NEW
 import snd.komelia.offline.tasks.model.TaskEntry.TaskStatus.RUNNING
 import snd.komelia.offline.tasks.repository.OfflineTasksRepository
 
-class ExposedOfflineTasksRepository(database: Database) : ExposedRepository(database), OfflineTasksRepository {
+class ExposedOfflineTasksRepository(private val database: Database) :  OfflineTasksRepository {
 
     val tasksTable = OfflineTaskTable
 
 
     override suspend fun takeNew(): TaskEntry? {
-        return transaction {
+        return transaction(database) {
             val selectStatement = tasksTable.select(tasksTable.uniqueName)
                 .where(tasksTable.status.eq(NEW.name))
                 .orderBy(tasksTable.priority to SortOrder.DESC, tasksTable.createdDate to SortOrder.ASC)
@@ -41,7 +40,7 @@ class ExposedOfflineTasksRepository(database: Database) : ExposedRepository(data
     }
 
     override suspend fun save(entry: TaskEntry) {
-        transaction {
+        transaction(database) {
 
             tasksTable.upsert(
                 onUpdateExclude = listOf(tasksTable.createdDate)
@@ -55,7 +54,7 @@ class ExposedOfflineTasksRepository(database: Database) : ExposedRepository(data
     }
 
 //    override suspend fun findAllByStatus(status: TaskStatus, limit: Int, offset: Long): Page<TaskEntry> {
-//        return transaction {
+//        return transaction(database) {
 //            val count = tasksTable.select(tasksTable.id.count())
 //                .where { tasksTable.status.eq(status.name) }
 //                .first()
@@ -73,7 +72,7 @@ class ExposedOfflineTasksRepository(database: Database) : ExposedRepository(data
 //    }
 
     override suspend fun save(tasks: Collection<TaskEntry>) {
-        transaction {
+        transaction(database) {
             tasksTable.batchUpsert(
                 data = tasks,
                 onUpdateExclude = listOf(tasksTable.createdDate)
@@ -87,13 +86,13 @@ class ExposedOfflineTasksRepository(database: Database) : ExposedRepository(data
     }
 
     override suspend fun delete(taskId: String) {
-        transaction {
+        transaction(database) {
             tasksTable.deleteWhere { tasksTable.uniqueName.eq(taskId) }
         }
     }
 
     override suspend fun resetAllRunning(): Int {
-        return transaction {
+        return transaction(database) {
             tasksTable.update(where = { tasksTable.status.eq(RUNNING.name) }) {
                 it[status] = NEW.name
             }

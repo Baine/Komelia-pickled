@@ -6,17 +6,16 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.UserFontsTable
 import snd.komelia.fonts.UserFont
 import snd.komelia.fonts.UserFontsRepository
 
 class ExposedUserFontsRepository(
-    database: Database
-) : ExposedRepository(database), UserFontsRepository {
+    private val database: Database
+) :  UserFontsRepository {
 
     override suspend fun getAllFonts(): List<UserFont> {
-        return transaction {
+        return transaction(database) {
             UserFontsTable.selectAll().map {
                 UserFont(
                     name = it[UserFontsTable.name],
@@ -27,7 +26,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun getFont(name: String): UserFont? {
-        return transaction {
+        return transaction(database) {
             UserFontsTable.selectAll()
                 .where { UserFontsTable.name.eq(name) }
                 .firstOrNull()
@@ -41,7 +40,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun putFont(font: UserFont) {
-        transaction {
+        transaction(database) {
             UserFontsTable.upsert {
                 it[name] = font.name
                 it[path] = font.path.toString()
@@ -50,7 +49,7 @@ class ExposedUserFontsRepository(
     }
 
     override suspend fun deleteFont(font: UserFont) {
-        transaction {
+        transaction(database) {
             UserFontsTable.deleteWhere { name.eq(font.name) }
         }
     }

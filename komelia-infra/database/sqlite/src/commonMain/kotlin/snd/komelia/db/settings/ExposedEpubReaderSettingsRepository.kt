@@ -5,15 +5,14 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
 import snd.komelia.db.EpubReaderSettings
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.EpubReaderSettingsTable
 import snd.komelia.settings.model.EpubReaderType
 
-class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepository(database) {
+class ExposedEpubReaderSettingsRepository(private val database: Database) {
 
     suspend fun get(): EpubReaderSettings? {
-        return transaction {
+        return transaction(database) {
             EpubReaderSettingsTable.selectAll()
                 .where { EpubReaderSettingsTable.bookId.eq(defaultBookId) }
                 .firstOrNull()
@@ -28,7 +27,7 @@ class ExposedEpubReaderSettingsRepository(database: Database) : ExposedRepositor
     }
 
     suspend fun save(settings: EpubReaderSettings) {
-        transaction {
+        transaction(database) {
             EpubReaderSettingsTable.upsert {
                 it[bookId] = defaultBookId
                 it[readerType] = settings.readerType.name

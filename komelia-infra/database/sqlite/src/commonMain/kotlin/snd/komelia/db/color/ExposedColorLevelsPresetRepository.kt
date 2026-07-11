@@ -9,15 +9,14 @@ import snd.komelia.color.ColorLevelChannels
 import snd.komelia.color.ColorLevelsConfig
 import snd.komelia.color.ColorLevelsPreset
 import snd.komelia.color.repository.ColorLevelsPresetRepository
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.ColorLevelsPresetsTable
 
 class ExposedColorLevelsPresetRepository(
-    database: Database
-) : ExposedRepository(database), ColorLevelsPresetRepository {
+    private val database: Database
+) :  ColorLevelsPresetRepository {
 
     override suspend fun getPresets(): List<ColorLevelsPreset> {
-        return transaction {
+        return transaction(database) {
             ColorLevelsPresetsTable.selectAll()
                 .map {
                     val channels = ColorLevelChannels(
@@ -59,7 +58,7 @@ class ExposedColorLevelsPresetRepository(
     }
 
     override suspend fun savePreset(preset: ColorLevelsPreset) {
-        transaction {
+        transaction(database) {
             ColorLevelsPresetsTable.upsert {
                 it[this.name] = preset.name
                 it[colorLowInput] = preset.channels.color.lowInput
@@ -90,6 +89,6 @@ class ExposedColorLevelsPresetRepository(
     }
 
     override suspend fun deletePreset(preset: ColorLevelsPreset) {
-        transaction { ColorLevelsPresetsTable.deleteWhere { name.eq(preset.name) } }
+        transaction(database) { ColorLevelsPresetsTable.deleteWhere { name.eq(preset.name) } }
     }
 }

@@ -31,7 +31,6 @@ kotlin {
             implementation(libs.kotlinx.browser)
             implementation(libs.kotlinx.coroutines.core)
             api(projects.komeliaInfra.imageDecoder.shared)
-//            implementation(npm("wasm-vips", "0.0.11"))
         }
     }
 }

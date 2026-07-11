@@ -12,7 +12,6 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.andWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.union
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.conditions.containsIgnoreCase
 import snd.komelia.db.offline.offset
 import snd.komelia.db.offline.page
@@ -37,8 +36,8 @@ import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.series.KomgaSeriesId
 
 class ExposedOfflineReferentialRepository(
-     database: Database
-) : OfflineReferentialRepository, ExposedRepository(database) {
+     private val database: Database
+) : OfflineReferentialRepository {
     private val seriesTable = OfflineSeriesTable
     private val seriesMetaTable = OfflineSeriesMetadataTable
     private val seriesMetaGenresTable = OfflineSeriesMetadataGenreTable
@@ -52,7 +51,7 @@ class ExposedOfflineReferentialRepository(
     private val bookTagAggregationTable = OfflineBookMetadataAggregationTagTable
 
     override suspend fun findAllAuthorsByName(search: String): List<KomgaAuthor> {
-        return transaction {
+        return transaction(database) {
             bookAuthorsTable.select(bookAuthorsTable.name, bookAuthorsTable.role)
                 .where { bookAuthorsTable.name.containsIgnoreCase(search) }
                 .orderBy(bookAuthorsTable.name)
@@ -69,7 +68,7 @@ class ExposedOfflineReferentialRepository(
         search: String,
         libraryId: KomgaLibraryId
     ): List<KomgaAuthor> {
-        return transaction {
+        return transaction(database) {
             bookMetaAggregationAuthorTable
                 .join(
                     otherTable = seriesTable,
@@ -103,7 +102,7 @@ class ExposedOfflineReferentialRepository(
         search: String,
         seriesId: KomgaSeriesId
     ): List<KomgaAuthor> {
-        return transaction {
+        return transaction(database) {
             bookMetaAggregationAuthorTable
                 .select(bookMetaAggregationAuthorTable.name, bookMetaAggregationAuthorTable.role)
                 .withDistinct()
@@ -120,7 +119,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllAuthorsNamesByName(search: String): List<String> {
-        return transaction {
+        return transaction(database) {
             bookAuthorsTable.select(bookAuthorsTable.name)
                 .withDistinct()
                 .where { bookAuthorsTable.name.containsIgnoreCase(search) }
@@ -130,7 +129,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllAuthorsRoles(): List<String> {
-        return transaction {
+        return transaction(database) {
             bookAuthorsTable.select(bookAuthorsTable.role)
                 .withDistinct()
                 .orderBy(bookAuthorsTable.role)
@@ -203,7 +202,7 @@ class ExposedOfflineReferentialRepository(
         pageRequest: KomgaPageRequest,
         filterBy: FilterBy?
     ): Page<KomgaAuthor> {
-        return transaction {
+        return transaction(database) {
             val query = bookMetaAggregationAuthorTable
                 .apply {
                     if (filterBy?.type == FilterByType.LIBRARY) join(
@@ -264,7 +263,7 @@ class ExposedOfflineReferentialRepository(
     )
 
     override suspend fun findAllGenres(): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaGenresTable.select(seriesMetaGenresTable.genre)
                 .withDistinct()
                 .orderBy(seriesMetaGenresTable.genre)
@@ -273,7 +272,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllGenresByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaGenresTable
                 .join(
                     otherTable = seriesTable,
@@ -295,7 +294,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesAndBookTags(): List<String> {
-        return transaction {
+        return transaction(database) {
             val bookTagAlias = bookMetaTagTable.tag.alias("tag")
             val seriesTagAlias = seriesMetaTagTable.tag.alias("tag")
 
@@ -308,7 +307,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesAndBookTagsByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
-        return transaction {
+        return transaction(database) {
             val bookTagAlias = bookMetaTagTable.tag.alias("tag")
             val seriesTagAlias = seriesMetaTagTable.tag.alias("tag")
 
@@ -343,7 +342,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesTags(): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTagTable
                 .select(seriesMetaTagTable.tag)
                 .orderBy(seriesMetaTagTable.tag)
@@ -352,7 +351,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesTagsByLibrary(libraryId: KomgaLibraryId): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTagTable
                 .join(
                     otherTable = seriesTable,
@@ -373,7 +372,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllBookTags(): List<String> {
-        return transaction {
+        return transaction(database) {
             bookMetaTagTable
                 .select(bookMetaTagTable.tag)
                 .orderBy(bookMetaTagTable.tag)
@@ -382,7 +381,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllBookTagsBySeries(seriesId: KomgaSeriesId): List<String> {
-        return transaction {
+        return transaction(database) {
             bookMetaTagTable
                 .join(
                     otherTable = bookTable,
@@ -403,7 +402,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllLanguages(): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .select(seriesMetaTable.language)
                 .withDistinct()
@@ -414,7 +413,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllLanguagesByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .join(
                     otherTable = seriesTable,
@@ -437,7 +436,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllPublishers(): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .select(seriesMetaTable.publisher)
                 .withDistinct()
@@ -453,7 +452,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllPublishersByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .join(
                     otherTable = seriesTable,
@@ -476,7 +475,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllAgeRatings(): List<Int?> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .select(seriesMetaTable.ageRating)
                 .withDistinct()
@@ -486,7 +485,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllAgeRatingsByLibraries(libraryIds: List<KomgaLibraryId>): List<Int?> {
-        return transaction {
+        return transaction(database) {
             seriesMetaTable
                 .join(
                     otherTable = seriesTable,
@@ -508,7 +507,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesReleaseDates(): List<LocalDate> {
-        return transaction {
+        return transaction(database) {
             bookMetaAggregationTable
                 .select(bookMetaAggregationTable.releaseDate)
                 .withDistinct()
@@ -519,7 +518,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSeriesReleaseDatesByLibraries(libraryIds: List<KomgaLibraryId>): List<LocalDate> {
-        return transaction {
+        return transaction(database) {
             bookMetaAggregationTable
                 .join(
                     otherTable = seriesTable,
@@ -542,7 +541,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSharingLabels(): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaSharingTable
                 .select(seriesMetaSharingTable.label)
                 .withDistinct()
@@ -552,7 +551,7 @@ class ExposedOfflineReferentialRepository(
     }
 
     override suspend fun findAllSharingLabelsByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
-        return transaction {
+        return transaction(database) {
             seriesMetaSharingTable
                 .join(
                     otherTable = seriesTable,

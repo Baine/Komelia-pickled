@@ -1,7 +1,6 @@
 package snd.komelia.db.color
 
-import Database
-import com.juul.indexeddb.external.IDBKey
+import com.juul.indexeddb.*
 import snd.komelia.color.BookColorLevels
 import snd.komelia.color.ColorCurveBookPoints
 import snd.komelia.color.repository.BookColorCorrectionRepository

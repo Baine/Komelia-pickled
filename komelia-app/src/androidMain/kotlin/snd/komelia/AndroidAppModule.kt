@@ -61,7 +61,6 @@ import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.fonts.fontsDirectory
 import snd.komelia.homefilters.homeScreenDefaultFilters
-import snd.komelia.http.komeliaUserAgent
 import snd.komelia.image.AndroidPanelDetector
 import snd.komelia.image.AndroidReaderImageFactory
 import snd.komelia.image.KomeliaImageDecoder
@@ -241,7 +240,7 @@ class AndroidAppModule(
             expectSuccess = true
 
             install(UserAgent) {
-                agent = komeliaUserAgent
+                agent = "Snd-R/Komelia (https://github.com/Snd-R/Komelia)"
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS

@@ -6,7 +6,6 @@ import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.defaultBookId
 import snd.komelia.db.tables.ImageReaderSettingsTable
@@ -20,10 +19,10 @@ import snd.komelia.settings.model.PagedReadingDirection
 import snd.komelia.settings.model.ReaderFlashColor
 import snd.komelia.settings.model.ReaderType
 
-class ExposedImageReaderSettingsRepository(database: Database) : ExposedRepository(database) {
+class ExposedImageReaderSettingsRepository(private val database: Database) {
 
     suspend fun get(): ImageReaderSettings? {
-        return transaction {
+        return transaction(database) {
             ImageReaderSettingsTable.selectAll()
                 .where { ImageReaderSettingsTable.bookId.eq(defaultBookId) }
                 .firstOrNull()
@@ -59,7 +58,7 @@ class ExposedImageReaderSettingsRepository(database: Database) : ExposedReposito
     }
 
     suspend fun save(settings: ImageReaderSettings) {
-        transaction {
+        transaction(database) {
             ImageReaderSettingsTable.upsert {
                 it[bookId] = defaultBookId
                 it[readerType] = settings.readerType.name

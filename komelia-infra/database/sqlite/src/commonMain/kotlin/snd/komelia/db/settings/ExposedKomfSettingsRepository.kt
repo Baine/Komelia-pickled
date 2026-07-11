@@ -4,14 +4,13 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.KomfSettings
 import snd.komelia.db.tables.KomfSettingsTable
 
-class ExposedKomfSettingsRepository(database: Database) : ExposedRepository(database) {
+class ExposedKomfSettingsRepository(private val database: Database) {
 
     suspend fun get(): KomfSettings? {
-        return transaction {
+        return transaction(database) {
             KomfSettingsTable.selectAll()
                 .firstOrNull()
                 ?.toKomfSettings()
@@ -19,7 +18,7 @@ class ExposedKomfSettingsRepository(database: Database) : ExposedRepository(data
     }
 
     suspend fun save(settings: KomfSettings) {
-        transaction {
+        transaction(database) {
             KomfSettingsTable.upsert {
                 it[version] = 1
                 it[KomfSettingsTable.enabled] = settings.enabled

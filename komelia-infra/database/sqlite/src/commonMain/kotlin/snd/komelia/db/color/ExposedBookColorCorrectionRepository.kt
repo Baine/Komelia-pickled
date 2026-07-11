@@ -16,15 +16,14 @@ import snd.komelia.color.ColorCurvePoints
 import snd.komelia.color.ColorLevelChannels
 import snd.komelia.color.ColorLevelsConfig
 import snd.komelia.color.repository.BookColorCorrectionRepository
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.BookColorCorrectionTable
 import snd.komelia.db.tables.BookColorCurvesTable
 import snd.komelia.db.tables.BookColorLevelsTable
 import snd.komga.client.book.KomgaBookId
 
 class ExposedBookColorCorrectionRepository(
-    database: Database
-) : ExposedRepository(database), BookColorCorrectionRepository {
+    private val database: Database
+) :  BookColorCorrectionRepository {
     private val typeChangeFlow = MutableSharedFlow<Pair<KomgaBookId, ColorCorrectionType?>>()
     private val curveChangeFlow = MutableSharedFlow<Pair<KomgaBookId, ColorCurveBookPoints?>>()
     private val levelsChangeFlow = MutableSharedFlow<Pair<KomgaBookId, BookColorLevels?>>()
@@ -37,7 +36,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     private suspend fun fetchType(bookId: KomgaBookId): ColorCorrectionType? {
-        return transaction {
+        return transaction(database) {
             BookColorCorrectionTable.selectAll()
                 .where { BookColorCorrectionTable.bookId.eq(bookId.value) }
                 .firstOrNull()
@@ -46,7 +45,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun setCurrentType(bookId: KomgaBookId, type: ColorCorrectionType) {
-        transaction {
+        transaction(database) {
             BookColorCorrectionTable.upsert {
                 it[this.bookId] = bookId.value
                 it[this.type] = type.name
@@ -56,7 +55,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun deleteSettings(bookId: KomgaBookId) {
-        transaction {
+        transaction(database) {
             BookColorCurvesTable.deleteWhere { BookColorCurvesTable.bookId.eq(bookId.value) }
             BookColorLevelsTable.deleteWhere { BookColorLevelsTable.bookId.eq(bookId.value) }
             BookColorCorrectionTable.deleteWhere { BookColorCorrectionTable.bookId.eq(bookId.value) }
@@ -74,7 +73,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     private suspend fun fetchCurve(bookId: KomgaBookId): ColorCurveBookPoints? {
-        return transaction {
+        return transaction(database) {
             BookColorCurvesTable.selectAll()
                 .where { BookColorCurvesTable.bookId.eq(bookId.value) }
                 .firstOrNull()
@@ -94,7 +93,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun saveCurve(points: ColorCurveBookPoints) {
-        transaction {
+        transaction(database) {
             BookColorCurvesTable.upsert {
                 it[this.bookId] = points.bookId.value
                 it[colorCurvePoints] = points.channels.colorCurvePoints
@@ -107,7 +106,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun deleteCurve(bookId: KomgaBookId) {
-        transaction {
+        transaction(database) {
             BookColorCurvesTable.deleteWhere { BookColorCurvesTable.bookId.eq(bookId.value) }
         }
         curveChangeFlow.emit(bookId to null)
@@ -121,7 +120,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     private suspend fun fetchLevels(bookId: KomgaBookId): BookColorLevels? {
-        return transaction {
+        return transaction(database) {
             BookColorLevelsTable.selectAll()
                 .where { BookColorLevelsTable.bookId.eq(bookId.value) }
                 .firstOrNull()
@@ -165,7 +164,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun saveLevels(levels: BookColorLevels) {
-        transaction {
+        transaction(database) {
             BookColorLevelsTable.upsert {
                 it[this.bookId] = levels.bookId.value
                 it[colorLowInput] = levels.channels.color.lowInput
@@ -197,7 +196,7 @@ class ExposedBookColorCorrectionRepository(
     }
 
     override suspend fun deleteLevels(bookId: KomgaBookId) {
-        transaction {
+        transaction(database) {
             BookColorLevelsTable.deleteWhere { BookColorLevelsTable.bookId.eq(bookId.value) }
         }
         levelsChangeFlow.emit(bookId to null)

@@ -9,7 +9,6 @@ import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineBookMetadataAuthorTable
 import snd.komelia.db.offline.tables.OfflineBookMetadataLinkTable
 import snd.komelia.db.offline.tables.OfflineBookMetadataTable
@@ -21,8 +20,7 @@ import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.common.KomgaWebLink
 import kotlin.time.Instant
 
-class ExposedOfflineBookMetadataRepository(database: Database) : OfflineBookMetadataRepository,
-    ExposedRepository(database) {
+class ExposedOfflineBookMetadataRepository(private val database: Database) : OfflineBookMetadataRepository {
 
     private val metadataTable = OfflineBookMetadataTable
     private val metadataAuthorsTable = OfflineBookMetadataAuthorTable
@@ -30,7 +28,7 @@ class ExposedOfflineBookMetadataRepository(database: Database) : OfflineBookMeta
     private val metadataLinkTable = OfflineBookMetadataLinkTable
 
     override suspend fun save(metadata: OfflineBookMetadata) {
-        transaction {
+        transaction(database) {
             OfflineBookMetadataTable.upsert {
                 it[bookId] = metadata.bookId.value
                 it[number] = metadata.number
@@ -90,7 +88,7 @@ class ExposedOfflineBookMetadataRepository(database: Database) : OfflineBookMeta
     }
 
     private suspend fun find(bookIds: List<String>): List<OfflineBookMetadata> {
-        return transaction {
+        return transaction(database) {
             val rows = metadataTable.selectAll()
                 .where { metadataTable.bookId.inList(bookIds) }
 
@@ -149,7 +147,7 @@ class ExposedOfflineBookMetadataRepository(database: Database) : OfflineBookMeta
     }
 
     override suspend fun delete(id: KomgaBookId) {
-        transaction {
+        transaction(database) {
             metadataAuthorsTable.deleteWhere { metadataAuthorsTable.bookId.eq(id.value) }
             metadataTagTable.deleteWhere { metadataTagTable.bookId.eq(id.value) }
             metadataLinkTable.deleteWhere { metadataLinkTable.bookId.eq(id.value) }
@@ -158,7 +156,7 @@ class ExposedOfflineBookMetadataRepository(database: Database) : OfflineBookMeta
     }
 
     override suspend fun delete(bookIds: List<KomgaBookId>) {
-        transaction {
+        transaction(database) {
             val ids = bookIds.map { it.value }
             metadataAuthorsTable.deleteWhere { metadataAuthorsTable.bookId.inList(ids) }
             metadataTagTable.deleteWhere { metadataTagTable.bookId.inList(ids) }

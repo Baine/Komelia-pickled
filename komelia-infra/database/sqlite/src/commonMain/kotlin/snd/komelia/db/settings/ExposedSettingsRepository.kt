@@ -5,17 +5,16 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
 import snd.komelia.db.AppSettings
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.AppSettingsTable
 import snd.komelia.settings.model.AppTheme
 import snd.komelia.settings.model.BooksLayout
 import snd.komelia.updates.AppVersion
 import kotlin.time.Instant
 
-class ExposedSettingsRepository(database: Database) : ExposedRepository(database) {
+class ExposedSettingsRepository(private val database: Database) {
 
     suspend fun get(): AppSettings? {
-        return transaction {
+        return transaction(database) {
             AppSettingsTable.selectAll()
                 .firstOrNull()
                 ?.toAppSettings()
@@ -23,7 +22,7 @@ class ExposedSettingsRepository(database: Database) : ExposedRepository(database
     }
 
     suspend fun save(settings: AppSettings) {
-        transaction {
+        transaction(database) {
             AppSettingsTable.upsert {
                 it[version] = 1
                 it[username] = settings.username

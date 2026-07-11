@@ -8,7 +8,6 @@ import org.jetbrains.exposed.v1.jdbc.Query
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineLibraryExclusionsTable
 import snd.komelia.db.offline.tables.OfflineLibraryTable
 import snd.komelia.offline.library.model.OfflineLibrary
@@ -18,12 +17,12 @@ import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.library.ScanInterval
 import snd.komga.client.library.SeriesCover
 
-class ExposedOfflineLibraryRepository( database: Database) : ExposedRepository(database), OfflineLibraryRepository {
+class ExposedOfflineLibraryRepository( private val database: Database) :  OfflineLibraryRepository {
     private val libraryTable = OfflineLibraryTable
     private val libraryExclusionsTable = OfflineLibraryExclusionsTable
 
     override suspend fun save(library: OfflineLibrary) {
-        transaction {
+        transaction(database) {
             libraryTable.upsert {
                 it[libraryTable.id] = library.id.value
                 it[libraryTable.mediaServerId] = library.mediaServerId.value
@@ -64,7 +63,7 @@ class ExposedOfflineLibraryRepository( database: Database) : ExposedRepository(d
     }
 
     override suspend fun find(id: KomgaLibraryId): OfflineLibrary? {
-        return transaction {
+        return transaction(database) {
             selectBase()
                 .where(libraryTable.id.eq(id.value))
                 .fetchAndMap()
@@ -73,13 +72,13 @@ class ExposedOfflineLibraryRepository( database: Database) : ExposedRepository(d
     }
 
     override suspend fun findAll(): List<OfflineLibrary> {
-        return transaction {
+        return transaction(database) {
             selectBase().fetchAndMap()
         }
     }
 
     override suspend fun findAllByMediaServer(mediaServerId: OfflineMediaServerId): List<OfflineLibrary> {
-        return transaction {
+        return transaction(database) {
             selectBase()
                 .where { libraryTable.mediaServerId.eq(mediaServerId.value) }
                 .fetchAndMap()
@@ -87,7 +86,7 @@ class ExposedOfflineLibraryRepository( database: Database) : ExposedRepository(d
     }
 
     override suspend fun delete(id: KomgaLibraryId) {
-        transaction {
+        transaction(database) {
             libraryExclusionsTable.deleteWhere { libraryExclusionsTable.libraryId.eq(id.value) }
             libraryTable.deleteWhere { libraryTable.id.eq(id.value) }
         }

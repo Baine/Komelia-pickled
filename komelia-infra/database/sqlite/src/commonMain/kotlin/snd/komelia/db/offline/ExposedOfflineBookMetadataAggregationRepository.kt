@@ -10,7 +10,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineBookMetadataAggregationAuthorTable
 import snd.komelia.db.offline.tables.OfflineBookMetadataAggregationTable
 import snd.komelia.db.offline.tables.OfflineBookMetadataAggregationTagTable
@@ -20,14 +19,14 @@ import snd.komga.client.common.KomgaAuthor
 import snd.komga.client.series.KomgaSeriesId
 import kotlin.time.Instant
 
-class ExposedOfflineBookMetadataAggregationRepository( database: Database) :
-    OfflineBookMetadataAggregationRepository, ExposedRepository(database) {
+class ExposedOfflineBookMetadataAggregationRepository( private val database: Database) 
+    OfflineBookMetadataAggregationRepository {
     val aggregationTable = OfflineBookMetadataAggregationTable
     val aggregationTagTable = OfflineBookMetadataAggregationTagTable
     val aggregationAuthorTable = OfflineBookMetadataAggregationAuthorTable
 
     override suspend fun save(metadata: OfflineBookMetadataAggregation) {
-        transaction {
+        transaction(database) {
             aggregationTable.upsert {
                 it[seriesId] = metadata.seriesId.value
                 it[releaseDate] = metadata.releaseDate?.toString()
@@ -92,7 +91,7 @@ class ExposedOfflineBookMetadataAggregationRepository( database: Database) :
     }
 
     override suspend fun delete(seriesId: KomgaSeriesId) {
-        transaction {
+        transaction(database) {
             aggregationAuthorTable.deleteWhere { aggregationAuthorTable.seriesId.eq(seriesId.value) }
             aggregationTagTable.deleteWhere { aggregationTagTable.seriesId.eq(seriesId.value) }
             aggregationTable.deleteWhere { aggregationTable.seriesId.eq(seriesId.value) }
@@ -100,7 +99,7 @@ class ExposedOfflineBookMetadataAggregationRepository( database: Database) :
     }
 
     override suspend fun delete(seriesIds: List<KomgaSeriesId>) {
-        transaction {
+        transaction(database) {
             val ids = seriesIds.map { it.value }
             aggregationAuthorTable.deleteWhere { aggregationAuthorTable.seriesId.inList(ids) }
             aggregationTagTable.deleteWhere { aggregationTagTable.seriesId.inList(ids) }

@@ -8,7 +8,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineMediaServerTable
 import snd.komelia.db.offline.tables.OfflineUserTable
 import snd.komelia.offline.server.model.OfflineMediaServer
@@ -17,12 +16,12 @@ import snd.komelia.offline.server.repository.OfflineMediaServerRepository
 import snd.komga.client.user.KomgaUserId
 
 class ExposedOfflineMediaServerRepository(
-    database: Database
-) : ExposedRepository(database), OfflineMediaServerRepository {
+    private val database: Database
+) :  OfflineMediaServerRepository {
     private val serverTable = OfflineMediaServerTable
 
     override suspend fun save(server: OfflineMediaServer) {
-        transaction {
+        transaction(database) {
             serverTable.upsert {
                 it[serverTable.id] = server.id.value
                 it[serverTable.url] = server.url
@@ -35,7 +34,7 @@ class ExposedOfflineMediaServerRepository(
     }
 
     override suspend fun find(id: OfflineMediaServerId): OfflineMediaServer? {
-        return transaction {
+        return transaction(database) {
             serverTable.selectAll()
                 .where { serverTable.id.eq(id.value) }
                 .firstOrNull()
@@ -44,7 +43,7 @@ class ExposedOfflineMediaServerRepository(
     }
 
     override suspend fun findAll(): List<OfflineMediaServer> {
-        return transaction {
+        return transaction(database) {
             serverTable
                 .selectAll()
                 .map { it.toModel() }
@@ -52,7 +51,7 @@ class ExposedOfflineMediaServerRepository(
     }
 
     override suspend fun findByUrl(url: String): OfflineMediaServer? {
-        return transaction {
+        return transaction(database) {
             serverTable.selectAll()
                 .where { serverTable.url.eq(url) }
                 .firstOrNull()
@@ -61,7 +60,7 @@ class ExposedOfflineMediaServerRepository(
     }
 
     override suspend fun findByUserId(userId: KomgaUserId): OfflineMediaServer? {
-        return transaction {
+        return transaction(database) {
             serverTable
                 .join(
                     otherTable = OfflineUserTable,
@@ -77,7 +76,7 @@ class ExposedOfflineMediaServerRepository(
     }
 
     override suspend fun delete(id: OfflineMediaServerId) {
-        transaction {
+        transaction(database) {
             serverTable.deleteWhere { serverTable.id.eq(id.value) }
         }
     }

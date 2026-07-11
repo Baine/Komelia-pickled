@@ -1,8 +1,8 @@
 package snd.komelia.db
 
-import Database
-import VersionChangeTransaction
-import openDatabase
+import com.juul.indexeddb.Database
+import com.juul.indexeddb.VersionChangeTransaction
+import com.juul.indexeddb.openDatabase
 
 internal const val colorCorrectionStore = "bookColorCorrection"
 internal const val colorCurvesStore = "bookColorCurves"

@@ -11,7 +11,6 @@ import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineMediaPageTable
 import snd.komelia.db.offline.tables.OfflineMediaTable
 import snd.komelia.offline.media.model.OfflineBookPage
@@ -21,13 +20,13 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaMediaStatus
 import snd.komga.client.book.MediaProfile
 
-class ExposedMediaRepository(database: Database) : ExposedRepository(database), OfflineMediaRepository {
+class ExposedMediaRepository(private val database: Database) :  OfflineMediaRepository {
     private val mediaTable = OfflineMediaTable
     private val pagesTable = OfflineMediaPageTable
 
     @OptIn(InternalSerializationApi::class)
     override suspend fun save(media: OfflineMedia) {
-        transaction {
+        transaction(database) {
             mediaTable.upsert {
                 it[mediaTable.bookId] = media.bookId.value
                 it[mediaTable.status] = media.status.name
@@ -45,7 +44,7 @@ class ExposedMediaRepository(database: Database) : ExposedRepository(database), 
     }
 
     override suspend fun find(id: KomgaBookId): OfflineMedia? {
-        return transaction {
+        return transaction(database) {
             val mediaResult = mediaTable.selectAll()
                 .where { mediaTable.bookId.eq(id.value) }
                 .firstOrNull()
@@ -61,7 +60,7 @@ class ExposedMediaRepository(database: Database) : ExposedRepository(database), 
     }
 
     override suspend fun findAll(ids: List<KomgaBookId>): List<OfflineMedia> {
-        return transaction {
+        return transaction(database) {
             mediaTable.selectAll()
                 .where { mediaTable.bookId.inList(ids.map { it.value }) }
                 .fetchAndMap()
@@ -82,14 +81,14 @@ class ExposedMediaRepository(database: Database) : ExposedRepository(database), 
     }
 
     override suspend fun delete(id: KomgaBookId) {
-        transaction {
+        transaction(database) {
             pagesTable.deleteWhere { pagesTable.bookId.eq(id.value) }
             mediaTable.deleteWhere { mediaTable.bookId.eq(id.value) }
         }
     }
 
     override suspend fun delete(bookIds: List<KomgaBookId>) {
-        transaction {
+        transaction(database) {
             val ids = bookIds.map { it.value }
             pagesTable.deleteWhere { pagesTable.bookId.inList(ids) }
             mediaTable.deleteWhere { mediaTable.bookId.inList(ids) }

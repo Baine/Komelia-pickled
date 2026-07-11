@@ -9,7 +9,6 @@ import org.jetbrains.exposed.v1.jdbc.deleteAll
 import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineLogJournalTable
 import snd.komelia.offline.sync.model.LogEntryId
 import snd.komelia.offline.sync.model.OfflineLogEntry
@@ -18,11 +17,11 @@ import snd.komga.client.common.Page
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
 
-class ExposedLogJournalRepository(database: Database) : ExposedRepository(database), LogJournalRepository {
+class ExposedLogJournalRepository(private val database: Database) :  LogJournalRepository {
 
     private val journalTable = OfflineLogJournalTable
     override suspend fun save(entry: OfflineLogEntry) {
-        transaction {
+        transaction(database) {
             journalTable.insert {
                 it[id] = entry.id.value.toHexDashString()
                 it[message] = entry.message
@@ -33,7 +32,7 @@ class ExposedLogJournalRepository(database: Database) : ExposedRepository(databa
     }
 
     override suspend fun get(id: LogEntryId): OfflineLogEntry {
-        return transaction {
+        return transaction(database) {
             journalTable.selectAll()
                 .where { journalTable.id.eq(id.value.toHexDashString()) }
                 .first()
@@ -45,7 +44,7 @@ class ExposedLogJournalRepository(database: Database) : ExposedRepository(databa
         limit: Int,
         offset: Long
     ): Page<OfflineLogEntry> {
-        return transaction {
+        return transaction(database) {
             val count = journalTable.select(journalTable.id.count())
                 .first()
                 .get(journalTable.id.count())
@@ -65,7 +64,7 @@ class ExposedLogJournalRepository(database: Database) : ExposedRepository(databa
         limit: Int,
         offset: Long
     ): Page<OfflineLogEntry> {
-        return transaction {
+        return transaction(database) {
             val count = journalTable.select(journalTable.id.count())
                 .where { journalTable.type.eq(type.name) }
                 .first()
@@ -83,7 +82,7 @@ class ExposedLogJournalRepository(database: Database) : ExposedRepository(databa
     }
 
     override suspend fun deleteAll() {
-        transaction { journalTable.deleteAll() }
+        transaction(database) { journalTable.deleteAll() }
     }
 
     private fun ResultRow.toModel() = OfflineLogEntry(

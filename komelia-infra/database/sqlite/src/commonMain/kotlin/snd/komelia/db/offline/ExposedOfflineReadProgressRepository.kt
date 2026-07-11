@@ -19,7 +19,6 @@ import org.jetbrains.exposed.v1.jdbc.insert
 import org.jetbrains.exposed.v1.jdbc.select
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineBookTable
 import snd.komelia.db.offline.tables.OfflineLibraryTable
 import snd.komelia.db.offline.tables.OfflineReadProgressSeriesTable
@@ -33,15 +32,15 @@ import snd.komga.client.user.KomgaUserId
 import kotlin.time.Instant
 
 class ExposedOfflineReadProgressRepository(
-    database: Database
-) : ExposedRepository(database), OfflineReadProgressRepository {
+    private val database: Database
+) :  OfflineReadProgressRepository {
     private val bookTable = OfflineBookTable
     private val progressTable = OfflineReadProgressTable
     private val seriesProgressTable = OfflineReadProgressSeriesTable
     private val libraryTable = OfflineLibraryTable
 
     override suspend fun save(readProgress: OfflineReadProgress) {
-        transaction {
+        transaction(database) {
             progressTable.upsert {
                 it[progressTable.bookId] = readProgress.bookId.value
                 it[progressTable.userId] = readProgress.userId.value
@@ -59,7 +58,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun saveAll(readProgress: List<OfflineReadProgress>) {
-        transaction {
+        transaction(database) {
             progressTable.batchUpsert(readProgress) { progress ->
                 this[progressTable.bookId] = progress.bookId.value
                 this[progressTable.userId] = progress.userId.value
@@ -81,7 +80,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun find(bookId: KomgaBookId, userId: KomgaUserId): OfflineReadProgress? {
-        return transaction {
+        return transaction(database) {
             progressTable
                 .selectAll()
                 .where {
@@ -98,7 +97,7 @@ class ExposedOfflineReadProgressRepository(
         userId: KomgaUserId,
         serverId: OfflineMediaServerId,
     ): List<OfflineReadProgress> {
-        return transaction {
+        return transaction(database) {
             progressTable
                 .join(
                     otherTable = bookTable,
@@ -126,7 +125,7 @@ class ExposedOfflineReadProgressRepository(
         bookIds: List<KomgaBookId>,
         userId: KomgaUserId
     ): List<OfflineReadProgress> {
-        return transaction {
+        return transaction(database) {
             progressTable
                 .selectAll()
                 .where {
@@ -140,7 +139,7 @@ class ExposedOfflineReadProgressRepository(
         userId: KomgaUserId,
         serverId: OfflineMediaServerId,
     ): List<OfflineReadProgress> {
-        return transaction {
+        return transaction(database) {
             progressTable
                 .join(
                     otherTable = bookTable,
@@ -164,7 +163,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun deleteByUserId(userId: KomgaUserId) {
-        transaction {
+        transaction(database) {
             progressTable.deleteWhere { progressTable.userId.eq(userId.value) }
             seriesProgressTable.deleteWhere { seriesProgressTable.userId.eq(userId.value) }
         }
@@ -174,7 +173,7 @@ class ExposedOfflineReadProgressRepository(
         bookIds: List<KomgaBookId>,
         userId: KomgaUserId
     ) {
-        transaction {
+        transaction(database) {
             progressTable.deleteWhere {
                 progressTable.bookId.inList(bookIds.map { it.value })
                     .and { progressTable.userId.eq(userId.value) }
@@ -184,7 +183,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun deleteBySeriesIds(seriesIds: List<KomgaSeriesId>) {
-        transaction {
+        transaction(database) {
             seriesProgressTable.deleteWhere {
                 seriesProgressTable.seriesId.inList(seriesIds.map { it.value })
             }
@@ -193,7 +192,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun deleteByBookIds(bookIds: List<KomgaBookId>) {
-        transaction {
+        transaction(database) {
             progressTable.deleteWhere {
                 progressTable.bookId.inList(bookIds.map { it.value })
             }
@@ -202,7 +201,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun delete(bookId: KomgaBookId, userId: KomgaUserId) {
-        transaction {
+        transaction(database) {
             progressTable.deleteWhere {
                 progressTable.bookId.eq(bookId.value)
                     .and { progressTable.userId.eq(userId.value) }
@@ -212,7 +211,7 @@ class ExposedOfflineReadProgressRepository(
     }
 
     override suspend fun deleteAllBy(bookId: KomgaBookId) {
-        transaction {
+        transaction(database) {
             progressTable.deleteWhere {
                 progressTable.bookId.eq(bookId.value)
             }

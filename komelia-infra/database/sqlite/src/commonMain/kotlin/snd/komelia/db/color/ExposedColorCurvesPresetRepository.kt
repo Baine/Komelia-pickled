@@ -8,14 +8,13 @@ import org.jetbrains.exposed.v1.jdbc.upsert
 import snd.komelia.color.ColorCurvePoints
 import snd.komelia.color.ColorCurvePreset
 import snd.komelia.color.repository.ColorCurvePresetRepository
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.tables.ColorCurvePresetsTable
 import snd.komelia.db.tables.ColorCurvePresetsTable.name
 
-class ExposedColorCurvesPresetRepository(database: Database) : ExposedRepository(database), ColorCurvePresetRepository {
+class ExposedColorCurvesPresetRepository(private val database: Database) :  ColorCurvePresetRepository {
 
     override suspend fun getPresets(): List<ColorCurvePreset> {
-        return transaction {
+        return transaction(database) {
             ColorCurvePresetsTable.selectAll()
                 .map {
                     val points = ColorCurvePoints(
@@ -33,7 +32,7 @@ class ExposedColorCurvesPresetRepository(database: Database) : ExposedRepository
     }
 
     override suspend fun savePreset(preset: ColorCurvePreset) {
-        transaction {
+        transaction(database) {
             ColorCurvePresetsTable.upsert {
                 it[name] = preset.name
                 it[colorCurvePoints] = preset.points.colorCurvePoints
@@ -45,6 +44,6 @@ class ExposedColorCurvesPresetRepository(database: Database) : ExposedRepository
     }
 
     override suspend fun deletePreset(preset: ColorCurvePreset) {
-        transaction { ColorCurvePresetsTable.deleteWhere { name.eq(preset.name) } }
+        transaction(database) { ColorCurvePresetsTable.deleteWhere { name.eq(preset.name) } }
     }
 }

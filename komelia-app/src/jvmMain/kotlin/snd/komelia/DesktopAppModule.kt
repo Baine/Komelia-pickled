@@ -57,7 +57,6 @@ import snd.komelia.db.settings.ExposedImageReaderSettingsRepository
 import snd.komelia.db.settings.ExposedKomfSettingsRepository
 import snd.komelia.db.settings.ExposedSettingsRepository
 import snd.komelia.homefilters.homeScreenDefaultFilters
-import snd.komelia.http.komeliaUserAgent
 import snd.komelia.image.DesktopOnnxRuntimeUpscaler
 import snd.komelia.image.DesktopPanelDetector
 import snd.komelia.image.DesktopReaderImageFactory
@@ -244,7 +243,7 @@ class DesktopAppModule(
             expectSuccess = true
 
             install(UserAgent) {
-                agent = komeliaUserAgent
+                agent = "Snd-R/Komelia (https://github.com/Snd-R/Komelia)"
             }
             install(HttpTimeout) {
                 requestTimeoutMillis = HttpTimeoutConfig.INFINITE_TIMEOUT_MS

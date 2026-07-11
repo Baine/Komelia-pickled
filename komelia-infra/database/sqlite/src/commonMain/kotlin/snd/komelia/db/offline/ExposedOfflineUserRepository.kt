@@ -9,7 +9,6 @@ import org.jetbrains.exposed.v1.jdbc.batchInsert
 import org.jetbrains.exposed.v1.jdbc.deleteWhere
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.offline.tables.OfflineUserLibrarySharingTable
 import snd.komelia.db.offline.tables.OfflineUserRoleTable
 import snd.komelia.db.offline.tables.OfflineUserSharingTable
@@ -23,9 +22,9 @@ import snd.komga.client.user.AllowExclude.EXCLUDE
 import snd.komga.client.user.KomgaAgeRestriction
 import snd.komga.client.user.KomgaUserId
 
-class ExposedOfflineUserRepository(database: Database) : ExposedRepository(database), OfflineUserRepository {
+class ExposedOfflineUserRepository(private val database: Database) :  OfflineUserRepository {
     override suspend fun save(user: OfflineUser) {
-        transaction {
+        transaction(database) {
             OfflineUserTable.upsert {
                 it[OfflineUserTable.id] = user.id.value
                 it[OfflineUserTable.serverId] = user.serverId?.value
@@ -64,7 +63,7 @@ class ExposedOfflineUserRepository(database: Database) : ExposedRepository(datab
     }
 
     override suspend fun find(id: KomgaUserId): OfflineUser? {
-        return transaction {
+        return transaction(database) {
             OfflineUserTable
                 .selectAll()
                 .where { OfflineUserTable.id.eq(id.value) }
@@ -74,7 +73,7 @@ class ExposedOfflineUserRepository(database: Database) : ExposedRepository(datab
     }
 
     override suspend fun findAll(): List<OfflineUser> {
-        return transaction {
+        return transaction(database) {
             OfflineUserTable
                 .selectAll()
                 .fetchAndMap()
@@ -82,7 +81,7 @@ class ExposedOfflineUserRepository(database: Database) : ExposedRepository(datab
     }
 
     override suspend fun findAllByServer(serverId: OfflineMediaServerId): List<OfflineUser> {
-        return transaction {
+        return transaction(database) {
             OfflineUserTable
                 .selectAll()
                 .where { OfflineUserTable.serverId.eq(serverId.value) }
@@ -91,7 +90,7 @@ class ExposedOfflineUserRepository(database: Database) : ExposedRepository(datab
     }
 
     override suspend fun delete(id: KomgaUserId) {
-        transaction {
+        transaction(database) {
             OfflineUserRoleTable.deleteWhere { OfflineUserRoleTable.userId.eq(id.value) }
             OfflineUserLibrarySharingTable.deleteWhere { OfflineUserLibrarySharingTable.userId.eq(id.value) }
             OfflineUserSharingTable.deleteWhere { OfflineUserSharingTable.userId.eq(id.value) }

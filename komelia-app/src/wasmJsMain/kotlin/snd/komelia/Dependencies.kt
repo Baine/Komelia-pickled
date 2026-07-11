@@ -27,7 +27,7 @@ import snd.komelia.api.RemoteSettingsApi
 import snd.komelia.api.RemoteTaskApi
 import snd.komelia.api.RemoteUserApi
 import snd.komelia.db.SettingsStateWrapper
-import Database
+import com.juul.indexeddb.Database
 import snd.komelia.db.color.IDBBookColorCorrectionRepository
 import snd.komelia.db.color.IDBColorCurvesPresetRepository
 import snd.komelia.db.color.IDBColorLevelsPresetRepository

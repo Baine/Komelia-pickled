@@ -5,7 +5,6 @@ import org.jetbrains.exposed.v1.core.ResultRow
 import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.upsert
-import snd.komelia.db.ExposedRepository
 import snd.komelia.db.OfflineSettings
 import snd.komelia.db.offline.tables.OfflineSettingsTable
 import snd.komelia.offline.server.model.OfflineMediaServerId
@@ -13,10 +12,10 @@ import snd.komelia.offline.user.model.OfflineUser
 import snd.komga.client.user.KomgaUserId
 import kotlin.time.Instant
 
-class ExposedOfflineSettingsRepository(database: Database) : ExposedRepository(database) {
+class ExposedOfflineSettingsRepository(private val database: Database) {
 
     suspend fun get(): OfflineSettings? {
-        return transaction {
+        return transaction(database) {
             OfflineSettingsTable.selectAll()
                 .firstOrNull()
                 ?.toOfflineSettings()
@@ -24,7 +23,7 @@ class ExposedOfflineSettingsRepository(database: Database) : ExposedRepository(d
     }
 
     suspend fun save(settings: OfflineSettings) {
-        transaction {
+        transaction(database) {
             OfflineSettingsTable.upsert {
                 it[version] = 1
                 it[OfflineSettingsTable.isOfflineModeEnabled] = settings.isOfflineModeEnabled
