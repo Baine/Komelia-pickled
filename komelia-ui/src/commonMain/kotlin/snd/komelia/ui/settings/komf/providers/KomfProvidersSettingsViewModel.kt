@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.channelFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
@@ -152,7 +151,7 @@ class KomfProvidersSettingsViewModel(
     }
 
     fun onMangaBakaDbUpdate(): Flow<MangaBakaDownloadProgress> {
-        return channelFlow { komfConfigClient.updateMangaBakaDb().collect { send(it) } }
+        return komfConfigClient.updateMangaBakaDb()
     }
 
     class ProvidersConfigState(

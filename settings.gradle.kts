@@ -1,6 +1,13 @@
 rootProject.name = "Komelia"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
+includeBuild("../") {
+    dependencySubstitution {
+        substitute(module("io.github.snd-r.komf:client")).using(project(":komf-client"))
+        substitute(module("io.github.snd-r.komf:api-models")).using(project(":komf-api-models"))
+    }
+}
+
 pluginManagement {
     repositories {
         google()
