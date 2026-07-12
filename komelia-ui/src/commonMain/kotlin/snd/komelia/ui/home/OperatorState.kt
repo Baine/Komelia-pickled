@@ -12,11 +12,9 @@ import snd.komga.client.search.KomgaSearchOperator.NumericNullable
 import kotlin.time.Duration
 import kotlin.time.Instant
 
-interface OperatorState<T>
-
 open class EqualityOpState<T>(
     initial: KomgaSearchOperator.Equality<T>? = null
-) : OperatorState<T> {
+) {
     val operator: MutableStateFlow<Op>
     val value: MutableStateFlow<T?>
 
@@ -55,7 +53,7 @@ open class EqualityOpState<T>(
 
 open class EqualityNullableOpState<T>(
     initial: KomgaSearchOperator.EqualityNullable<T>? = null
-) : OperatorState<T> {
+) {
     val operator: MutableStateFlow<Op>
     val value: MutableStateFlow<T?>
 
@@ -97,7 +95,7 @@ open class EqualityNullableOpState<T>(
 
 open class BooleanOpState(
     initial: KomgaSearchOperator.Boolean? = null
-) : OperatorState<Boolean> {
+) {
     val operator: MutableStateFlow<Op>
 
     init {
@@ -127,7 +125,7 @@ open class BooleanOpState(
 
 open class StringOpState(
     initial: KomgaSearchOperator.StringOp? = null
-) : OperatorState<String> {
+) {
     val operator: MutableStateFlow<Op>
     val value: MutableStateFlow<String?>
 
@@ -182,7 +180,7 @@ open class StringOpState(
     }
 }
 
-open class DateOpState(initial: KomgaSearchOperator.Date? = null) : OperatorState<Instant> {
+open class DateOpState(initial: KomgaSearchOperator.Date? = null) {
     val operator: MutableStateFlow<Op>
     val date: MutableStateFlow<Instant?>
     val period: MutableStateFlow<Duration?>
@@ -239,7 +237,7 @@ open class DateOpState(initial: KomgaSearchOperator.Date? = null) : OperatorStat
 
 open class NumericOpState<T>(
     initial: KomgaSearchOperator.Numeric<T>?
-) : OperatorState<T> {
+) {
     val operator: MutableStateFlow<Op>
     val value: MutableStateFlow<T?>
 
@@ -286,7 +284,7 @@ open class NumericOpState<T>(
 
 open class NumericNullableOpState<T>(
     initial: NumericNullable<T>?
-) : OperatorState<T> {
+) {
     val operator: MutableStateFlow<Op>
     val value: MutableStateFlow<T?>
 

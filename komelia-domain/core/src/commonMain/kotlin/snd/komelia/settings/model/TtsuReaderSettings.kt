@@ -8,13 +8,17 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import snd.komelia.settings.model.TtsuBlurMode.AFTER_TOC
-import snd.komelia.settings.model.TtsuBlurMode.TtuBlurModeSerializer
-import snd.komelia.settings.model.TtsuFuriganaStyle.Partial
-import snd.komelia.settings.model.TtsuFuriganaStyle.TtuFuriganaStyleSerializer
-import snd.komelia.settings.model.TtsuViewMode.TtuViewModeSerializer
-import snd.komelia.settings.model.TtsuWritingMode.HORIZONTAL_TB
-import snd.komelia.settings.model.TtsuWritingMode.TtuWritingModeSerializer
-import snd.komelia.settings.model.TtuTheme.TtuThemeSerializer
+
+// ponytail: one generic serializer replaces 5 identical inner classes
+
+inline fun <reified E : Enum<E>> enumStringSerializer(
+    serialName: String,
+    crossinline resolve: E.() -> String,
+): KSerializer<E> = object : KSerializer<E> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(serialName, PrimitiveKind.STRING)
+    override fun deserialize(decoder: Decoder): E = enumValueOf<E>(decoder.decodeString())
+    override fun serialize(encoder: Encoder, value: E) = encoder.encodeString(value.resolve())
+}
 
 @Serializable
 data class TtsuReaderSettings(
@@ -34,8 +38,8 @@ data class TtsuReaderSettings(
     val hideSpoilerImage: Boolean = true,
     val hideSpoilerImageMode: TtsuBlurMode = AFTER_TOC,
     val hideFurigana: Boolean = false,
-    val furiganaStyle: TtsuFuriganaStyle = Partial,
-    val writingMode: TtsuWritingMode = HORIZONTAL_TB,
+    val furiganaStyle: TtsuFuriganaStyle = TtsuFuriganaStyle.Partial,
+    val writingMode: TtsuWritingMode = TtsuWritingMode.HORIZONTAL_TB,
     val enableReaderWakeLock: Boolean = false,
     val showCharacterCounter: Boolean = true,
     val viewMode: TtsuViewMode = TtsuViewMode.Continuous,
@@ -82,84 +86,44 @@ data class TtsuUserFont(
     val fileName: String,
 )
 
-@Serializable(with = TtuBlurModeSerializer::class)
+@Serializable(with = TtsuBlurMode.Serializer::class)
 enum class TtsuBlurMode(val value: String) {
     ALL("all"),
     AFTER_TOC("afterToc");
 
-    class TtuBlurModeSerializer() : KSerializer<TtsuBlurMode> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TtuBlurMode", PrimitiveKind.STRING)
-        override fun deserialize(decoder: Decoder): TtsuBlurMode {
-            val value = decoder.decodeString()
-            return entries.first { it.value == value }
-        }
-
-        override fun serialize(encoder: Encoder, value: TtsuBlurMode) = encoder.encodeString(value.value)
-    }
+    internal object Serializer : KSerializer<TtsuBlurMode> by enumStringSerializer("TtsuBlurMode", TtsuBlurMode::value)
 }
 
-@Serializable(with = TtuFuriganaStyleSerializer::class)
+@Serializable(with = TtsuFuriganaStyle.Serializer::class)
 enum class TtsuFuriganaStyle(val value: String) {
     Hide("hide"),
     Partial("partial"),
     Toggle("toggle"),
     Full("full");
 
-    class TtuFuriganaStyleSerializer : KSerializer<TtsuFuriganaStyle> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TtuFuriganaStyle", PrimitiveKind.STRING)
-        override fun deserialize(decoder: Decoder): TtsuFuriganaStyle {
-            val value = decoder.decodeString()
-            return entries.first { it.value == value }
-        }
-
-        override fun serialize(encoder: Encoder, value: TtsuFuriganaStyle) = encoder.encodeString(value.value)
-    }
+    internal object Serializer : KSerializer<TtsuFuriganaStyle> by enumStringSerializer("TtsuFuriganaStyle", TtsuFuriganaStyle::value)
 }
 
-@Serializable(with = TtuThemeSerializer::class)
+@Serializable(with = TtuTheme.Serializer::class)
 enum class TtuTheme(val value: String) {
     LIGHT("light-theme"),
     DARK("dark-theme");
 
-    class TtuThemeSerializer() : KSerializer<TtuTheme> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TtuTheme", PrimitiveKind.STRING)
-        override fun deserialize(decoder: Decoder): TtuTheme {
-            val value = decoder.decodeString()
-            return entries.first { it.value == value }
-        }
-
-        override fun serialize(encoder: Encoder, value: TtuTheme) = encoder.encodeString(value.value)
-    }
+    internal object Serializer : KSerializer<TtuTheme> by enumStringSerializer("TtuTheme", TtuTheme::value)
 }
 
-@Serializable(with = TtuWritingModeSerializer::class)
+@Serializable(with = TtsuWritingMode.Serializer::class)
 enum class TtsuWritingMode(val value: String) {
     HORIZONTAL_TB("horizontal-tb"),
     VERTICAL_RL("vertical-rl");
 
-    class TtuWritingModeSerializer : KSerializer<TtsuWritingMode> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TtuWritingMode", PrimitiveKind.STRING)
-        override fun deserialize(decoder: Decoder): TtsuWritingMode {
-            val value = decoder.decodeString()
-            return entries.first { it.value == value }
-        }
-
-        override fun serialize(encoder: Encoder, value: TtsuWritingMode) = encoder.encodeString(value.value)
-    }
+    internal object Serializer : KSerializer<TtsuWritingMode> by enumStringSerializer("TtsuWritingMode", TtsuWritingMode::value)
 }
 
-@Serializable(with = TtuViewModeSerializer::class)
+@Serializable(with = TtsuViewMode.Serializer::class)
 enum class TtsuViewMode(val value: String) {
     Continuous("continuous"),
     Paginated("paginated");
 
-    class TtuViewModeSerializer : KSerializer<TtsuViewMode> {
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("TtuViewMode", PrimitiveKind.STRING)
-        override fun deserialize(decoder: Decoder): TtsuViewMode {
-            val value = decoder.decodeString()
-            return entries.first { it.value == value }
-        }
-
-        override fun serialize(encoder: Encoder, value: TtsuViewMode) = encoder.encodeString(value.value)
-    }
+    internal object Serializer : KSerializer<TtsuViewMode> by enumStringSerializer("TtsuViewMode", TtsuViewMode::value)
 }

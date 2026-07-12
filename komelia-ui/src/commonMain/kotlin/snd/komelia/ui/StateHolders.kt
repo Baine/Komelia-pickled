@@ -11,9 +11,3 @@ data class OptionsStateHolder<T>(
     val options: List<T>,
     val onValueChange: (T) -> Unit
 )
-
-data class StateListWithOptions<T>(
-    val value: List<T>,
-    val options: List<T>,
-    val onValueChange: (List<T>) -> Unit
-)
