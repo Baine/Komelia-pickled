@@ -8,6 +8,8 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.LocalDate
+import snd.komelia.db.NoopTransactionTemplate
+import snd.komelia.db.TransactionTemplate
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.OfflineDependencies
 import snd.komelia.offline.OfflineRepositories
@@ -285,10 +287,6 @@ private class WasmLogJournalRepository : LogJournalRepository {
     override suspend fun deleteAll() {}
 }
 
-private class WasmTransactions : TransactionTemplate {
-    override suspend fun <T> execute(statement: suspend () -> T): T = statement()
-}
-
 private class WasmTasksRepository : OfflineTasksRepository {
     override suspend fun takeNew(): TaskEntry? = null
     override suspend fun save(entry: TaskEntry) {}
@@ -352,7 +350,7 @@ suspend fun createWasmOfflineDependencies(
         referentialRepository = WasmReferentialRepository(),
         seriesDtoRepository = WasmSeriesDtoRepository(),
         logJournalRepository = WasmLogJournalRepository(),
-        transactionTemplate = WasmTransactions(),
+        transactionTemplate = NoopTransactionTemplate(),
         tasksRepository = WasmTasksRepository(),
         offlineSettingsRepository = WasmOfflineSettingsRepository(),
     )
