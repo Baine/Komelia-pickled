@@ -1,9 +1,6 @@
 package snd.komelia
 
 import io.github.vinceglb.filekit.PlatformFile
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,11 +10,25 @@ import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.datetime.LocalDate
 import snd.komelia.komga.api.model.KomeliaBook
 import snd.komelia.offline.OfflineDependencies
-import snd.komelia.offline.OfflineModule
 import snd.komelia.offline.OfflineRepositories
+import snd.komelia.offline.action.OfflineActions
+import snd.komelia.offline.api.OfflineBookApi
+import snd.komelia.offline.api.OfflineCollectionsApi
+import snd.komelia.offline.api.OfflineFileSystemApi
+import snd.komelia.offline.api.OfflineKomgaApi
+import snd.komelia.offline.api.OfflineLibraryApi
+import snd.komelia.offline.api.OfflineReadListApi
+import snd.komelia.offline.api.OfflineReferentialApi
+import snd.komelia.offline.api.OfflineSeriesApi
+import snd.komelia.offline.api.OfflineSettingsApi
+import snd.komelia.offline.api.OfflineTaskApi
+import snd.komelia.offline.api.OfflineUserApi
+import snd.komelia.offline.api.OfflineActuatorApi
+import snd.komelia.offline.api.OfflineAnnouncementsApi
 import snd.komelia.offline.api.repository.OfflineBookDtoRepository
 import snd.komelia.offline.api.repository.OfflineReferentialRepository
 import snd.komelia.offline.api.repository.OfflineSeriesDtoRepository
+import snd.komelia.offline.book.actions.BookKomgaImportAction
 import snd.komelia.offline.book.model.OfflineBook
 import snd.komelia.offline.book.model.OfflineBookMetadata
 import snd.komelia.offline.book.model.OfflineThumbnailBook
@@ -25,14 +36,17 @@ import snd.komelia.offline.book.repository.OfflineBookMetadataAggregationReposit
 import snd.komelia.offline.book.repository.OfflineBookMetadataRepository
 import snd.komelia.offline.book.repository.OfflineBookRepository
 import snd.komelia.offline.book.repository.OfflineThumbnailBookRepository
+import snd.komelia.offline.library.actions.LibraryKomgaImportAction
 import snd.komelia.offline.library.model.OfflineLibrary
 import snd.komelia.offline.library.repository.OfflineLibraryRepository
 import snd.komelia.offline.media.model.OfflineMedia
 import snd.komelia.offline.media.repository.OfflineMediaRepository
+import snd.komelia.offline.mediacontainer.BookContentExtractors
 import snd.komelia.offline.mediacontainer.DivinaExtractor
 import snd.komelia.offline.mediacontainer.EpubExtractor
 import snd.komelia.offline.readprogress.OfflineReadProgress
 import snd.komelia.offline.readprogress.OfflineReadProgressRepository
+import snd.komelia.offline.series.actions.SeriesKomgaImportAction
 import snd.komelia.offline.series.model.OfflineBookMetadataAggregation
 import snd.komelia.offline.series.model.OfflineSeries
 import snd.komelia.offline.series.model.OfflineSeriesMetadata
@@ -40,6 +54,7 @@ import snd.komelia.offline.series.model.OfflineThumbnailSeries
 import snd.komelia.offline.series.repository.OfflineSeriesMetadataRepository
 import snd.komelia.offline.series.repository.OfflineSeriesRepository
 import snd.komelia.offline.series.repository.OfflineThumbnailSeriesRepository
+import snd.komelia.offline.server.actions.MediaServerSaveAction
 import snd.komelia.offline.server.model.OfflineMediaServer
 import snd.komelia.offline.server.model.OfflineMediaServerId
 import snd.komelia.offline.server.repository.OfflineMediaServerRepository
@@ -50,11 +65,12 @@ import snd.komelia.offline.sync.model.DownloadEvent
 import snd.komelia.offline.sync.model.LogEntryId
 import snd.komelia.offline.sync.model.OfflineLogEntry
 import snd.komelia.offline.sync.repository.LogJournalRepository
+import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.offline.tasks.model.TaskEntry
 import snd.komelia.offline.tasks.repository.OfflineTasksRepository
+import snd.komelia.offline.user.actions.UserKomgaImportAction
 import snd.komelia.offline.user.model.OfflineUser
 import snd.komelia.offline.user.repository.OfflineUserRepository
-import snd.komelia.db.TransactionTemplate
 import snd.komga.client.KomgaClientFactory
 import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookSearch
@@ -68,11 +84,10 @@ import snd.komga.client.readlist.KomgaReadListId
 import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.series.KomgaSeriesSearch
+import snd.komga.client.sse.KomgaEvent
 import snd.komga.client.user.KomgaUserId
 import snd.komga.client.user.KomgaUser
 import kotlin.time.Instant
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.stateIn
 
 class WasmOfflineBookRepository : OfflineBookRepository {
     override suspend fun save(book: OfflineBook) {}
@@ -314,22 +329,6 @@ private class WasmDownloadManager : PlatformDownloadManager {
     override suspend fun cancelBookDownload(bookId: KomgaBookId) {}
 }
 
-private class WasmOfflineModuleImpl(
-    repositories: OfflineRepositories,
-    authenticatedUser: StateFlow<KomgaUser?>,
-    onlineServerUrl: StateFlow<String>,
-    isOffline: StateFlow<Boolean>,
-    komgaClientFactory: KomgaClientFactory,
-) : OfflineModule(repositories, authenticatedUser, onlineServerUrl, isOffline, komgaClientFactory) {
-    override fun createDivinaExtractors(): List<DivinaExtractor> = emptyList()
-    override fun createEpubExtractor(): EpubExtractor = WasmEpubExtractor()
-    override fun createPlatformDownloadManager(
-        downloadService: BookDownloadService,
-        logJournalRepository: LogJournalRepository,
-        events: MutableSharedFlow<DownloadEvent>,
-    ): PlatformDownloadManager = WasmDownloadManager()
-}
-
 suspend fun createWasmOfflineDependencies(
     komgaClientFactory: KomgaClientFactory,
     authenticatedUser: MutableStateFlow<KomgaUser?>,
@@ -358,13 +357,60 @@ suspend fun createWasmOfflineDependencies(
         offlineSettingsRepository = WasmOfflineSettingsRepository(),
     )
 
-    val module = WasmOfflineModuleImpl(
-        repositories = repos,
-        authenticatedUser = authenticatedUser,
-        onlineServerUrl = onlineServerUrl,
-        isOffline = isOffline,
-        komgaClientFactory = komgaClientFactory,
+    val komgaEvents = MutableSharedFlow<KomgaEvent>(replay = 0)
+    val bookDownloadEvents = MutableSharedFlow<DownloadEvent>(replay = 0)
+    val taskEmitter = OfflineTaskEmitter(tasksRepository = repos.tasksRepository, tasksFlow = MutableSharedFlow())
+    val fileService = BookContentExtractors(emptyList(), WasmEpubExtractor())
+
+    val actions = OfflineActions(
+        listOf(
+            UserKomgaImportAction(repos.userRepository, repos.transactionTemplate),
+            MediaServerSaveAction(repos.mediaServerRepository, repos.transactionTemplate),
+            LibraryKomgaImportAction(repos.libraryRepository, repos.mediaServerRepository, repos.logJournalRepository, repos.transactionTemplate),
+            SeriesKomgaImportAction(repos.seriesRepository, repos.seriesMetadataRepository, repos.thumbnailSeriesRepository, repos.bookMetadataAggregationRepository, repos.logJournalRepository, komgaClientFactory.seriesClient(), repos.transactionTemplate),
+            BookKomgaImportAction(repos.bookRepository, repos.bookMetadataRepository, repos.thumbnailBookRepository, repos.readProgressRepository, repos.mediaRepository, repos.logJournalRepository, komgaClientFactory.bookClient(), taskEmitter, repos.transactionTemplate, komgaEvents),
+        )
     )
 
-    return module.initDependencies()
+    val offlineUserId = MutableStateFlow(OfflineUser.ROOT)
+    val offlineServerFlow = MutableStateFlow<OfflineMediaServer?>(null)
+
+    val komgaApi = OfflineKomgaApi(
+        actuatorApi = OfflineActuatorApi(),
+        announcementsApi = OfflineAnnouncementsApi(),
+        bookApi = OfflineBookApi(repos.mediaRepository, repos.bookDtoRepository, repos.bookRepository, repos.thumbnailBookRepository, repos.readProgressRepository, actions, fileService, offlineUserId),
+        collectionsApi = OfflineCollectionsApi(),
+        fileSystemApi = OfflineFileSystemApi(),
+        libraryApi = OfflineLibraryApi(repos.libraryRepository, offlineServerFlow, offlineUserId, actions),
+        readListApi = OfflineReadListApi(),
+        referentialApi = OfflineReferentialApi(repos.referentialRepository),
+        seriesApi = OfflineSeriesApi(actions, repos.seriesDtoRepository, repos.thumbnailSeriesRepository, repos.seriesRepository, repos.libraryRepository, repos.bookRepository, repos.thumbnailBookRepository, offlineUserId),
+        settingsApi = OfflineSettingsApi(),
+        tasksApi = OfflineTaskApi(),
+        userApi = OfflineUserApi(offlineUserId, repos.userRepository),
+        komgaEvents = komgaEvents,
+    )
+
+    return OfflineDependencies(
+        actions = actions,
+        taskEmitter = taskEmitter,
+        komgaEvents = komgaEvents,
+        bookDownloadEvents = bookDownloadEvents,
+        downloadService = BookDownloadService(
+            libraryDownloadPath = emptyFlow(),
+            bookClient = komgaClientFactory.bookClient(),
+            seriesClient = komgaClientFactory.seriesClient(),
+            libraryClient = komgaClientFactory.libraryClient(),
+            userClient = komgaClientFactory.userClient(),
+            saveUserAction = actions.get(),
+            saveServerAction = actions.get(),
+            libraryImportAction = actions.get(),
+            seriesImportAction = actions.get(),
+            bookImportAction = actions.get(),
+            onlineServerUrl = onlineServerUrl,
+        ),
+        repositories = repos,
+        fileService = fileService,
+        komgaApi = komgaApi,
+    )
 }
