@@ -162,6 +162,7 @@ tasks.register<Zip>("packageExtensionSource") {
     }
     from("$rootDir/komelia-komf-extension") {
         into("komelia-komf-extension")
+        exclude("**/build/**", "**/.gradle/**")
     }
 }
 
