@@ -1,6 +1,6 @@
 package snd.komelia.komga
 
-import io.github.snd_r.komelia.ui.common.AppTheme
+import snd.komelia.ui.Theme
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +13,7 @@ import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId
 
 class KomgaSeriesActions(
-    private val theme: StateFlow<AppTheme>,
+    private val theme: StateFlow<Theme>,
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) {
     val element: HTMLButtonElement
@@ -88,7 +88,7 @@ class KomgaSeriesActions(
 
 
     fun onMount() {
-        if (theme.value == AppTheme.LIGHT) {
+        if (theme.value == Theme.LIGHT) {
             (element.getElementsByClassName("theme--dark").asList().toList() + element
                     + dropdown.element.getElementsByClassName("theme--dark").asList().toList())
                 .forEach { it.classList.replace("theme--dark", "theme--light") }

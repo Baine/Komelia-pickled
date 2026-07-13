@@ -3,7 +3,7 @@
 package snd.komelia
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.AppNotifications
+import snd.komelia.ui.AppNotifications
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.engine.js.*
@@ -44,10 +44,10 @@ private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
         )
     )
     val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(coroutineScope)
-    val komfClientFactory = KomfClientFactory(
-        baseUrl = { komfUrl.value },
-        ktor = createKtorClient(),
-    )
+    val komfClientFactory = KomfClientFactory.Builder()
+        .baseUrl { komfUrl.value }
+        .ktor(createKtorClient())
+        .build()
     val vmFactory = KomfViewModelFactory(
         komfClientFactory = komfClientFactory,
         appNotifications = AppNotifications(),

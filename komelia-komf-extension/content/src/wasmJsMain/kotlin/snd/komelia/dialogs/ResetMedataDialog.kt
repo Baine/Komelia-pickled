@@ -2,9 +2,9 @@ package snd.komelia.dialogs
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.ResetDialog
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.resetLibraryText
-import io.github.snd_r.komelia.ui.dialogs.komf.reset.resetSeriesText
+import snd.komelia.ui.dialogs.komf.reset.ResetDialog
+import snd.komelia.ui.dialogs.komf.reset.resetLibraryText
+import snd.komelia.ui.dialogs.komf.reset.resetSeriesText
 import snd.komelia.LocalKomfViewModelFactory
 import snd.komf.api.KomfServerLibraryId
 import snd.komf.api.KomfServerSeriesId

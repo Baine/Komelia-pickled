@@ -1,7 +1,7 @@
 package snd.komelia.kavita
 
 import io.github.oshai.kotlinlogging.KotlinLogging
-import io.github.snd_r.komelia.ui.common.AppTheme
+import snd.komelia.ui.Theme
 import kotlinx.browser.document
 import kotlinx.coroutines.flow.MutableStateFlow
 import org.w3c.dom.HTMLDivElement
@@ -14,7 +14,7 @@ import snd.komelia.MediaServerComponent
 private val logger = KotlinLogging.logger { }
 
 class KavitaComponent(
-    private val theme: MutableStateFlow<AppTheme>,
+    private val theme: MutableStateFlow<Theme>,
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) : MediaServerComponent {
     private val settingsButton: HTMLDivElement = document.createElement("div") as HTMLDivElement
@@ -38,7 +38,7 @@ class KavitaComponent(
     }
 
     fun launch() {
-        theme.value = AppTheme.DARK
+        theme.value = Theme.DARK
     }
 
 

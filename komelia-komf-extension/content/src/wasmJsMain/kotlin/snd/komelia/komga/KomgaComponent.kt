@@ -1,6 +1,6 @@
 package snd.komelia.komga
 
-import io.github.snd_r.komelia.ui.common.AppTheme
+import snd.komelia.ui.Theme
 import kotlinx.browser.document
 import kotlinx.browser.localStorage
 import kotlinx.browser.window
@@ -17,7 +17,7 @@ import snd.komelia.MediaServerComponent
 import snd.komelia.logger
 
 class KomgaComponent(
-    private val theme: MutableStateFlow<AppTheme>,
+    private val theme: MutableStateFlow<Theme>,
     private val currentDialog: MutableStateFlow<KomfActiveDialog>,
 ) : MediaServerComponent {
     private val settingsButton: HTMLDivElement = document.createElement("div") as HTMLDivElement
@@ -84,20 +84,20 @@ class KomgaComponent(
             val komgaTheme = persistedState?.get("theme") as? JsonPrimitive
             if (komgaTheme != null) {
                 when (komgaTheme.content) {
-                    "theme.dark" -> this.theme.value = AppTheme.DARK
+                    "theme.dark" -> this.theme.value = Theme.DARK
                     "theme.system" -> {
                         if (window.matchMedia("(prefers-color-scheme: dark)").matches)
-                            this.theme.value = AppTheme.DARK
-                        else this.theme.value = AppTheme.LIGHT
+                            this.theme.value = Theme.DARK
+                        else this.theme.value = Theme.LIGHT
 
                     }
 
-                    else -> this.theme.value = AppTheme.LIGHT
+                    else -> this.theme.value = Theme.LIGHT
                 }
             }
         }
 
-        if (theme.value == AppTheme.LIGHT) {
+        if (theme.value == Theme.LIGHT) {
             settingsButton.getElementsByClassName("theme--dark").asList().toList().forEach { elem ->
                 elem.classList.replace("theme--dark", "theme--light")
             }

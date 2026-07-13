@@ -5,7 +5,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import io.github.snd_r.komelia.ui.dialogs.tabs.TabDialog
+import snd.komelia.ui.dialogs.tabs.TabDialog
 import snd.komelia.settings.ConnectionTab
 import snd.komelia.settings.JobsTab
 import snd.komelia.settings.NotificationsTab

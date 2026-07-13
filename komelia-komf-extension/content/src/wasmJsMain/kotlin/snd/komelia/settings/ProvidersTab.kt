@@ -7,12 +7,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
-import io.github.snd_r.komelia.ui.LoadState
-import io.github.snd_r.komelia.ui.common.LoadingMaxSizeIndicator
-import io.github.snd_r.komelia.ui.dialogs.tabs.DialogTab
-import io.github.snd_r.komelia.ui.dialogs.tabs.TabItem
-import io.github.snd_r.komelia.ui.error.formatExceptionMessage
-import io.github.snd_r.komelia.ui.settings.komf.providers.KomfProvidersSettingsContent
+import snd.komelia.ui.LoadState
+import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
+import snd.komelia.ui.dialogs.tabs.DialogTab
+import snd.komelia.ui.dialogs.tabs.TabItem
+import snd.komelia.ui.error.formatExceptionMessage
+import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsContent
 import snd.komelia.LocalKomfViewModelFactory
 
 class ProvidersTab : DialogTab {
@@ -38,7 +38,7 @@ class ProvidersTab : DialogTab {
         when (vmState) {
             is LoadState.Error -> Text(formatExceptionMessage(vmState.exception))
             LoadState.Loading, LoadState.Uninitialized -> LoadingMaxSizeIndicator()
-            is LoadState.Success -> KomfProvidersSettingsContent(
+            is LoadState.Success<*> -> KomfProvidersSettingsContent(
                 defaultProcessingState = vm.defaultProvidersConfig,
                 libraryProcessingState = vm.libraryProvidersConfigs,
                 onLibraryConfigAdd = vm::onNewLibraryTabAdd,
