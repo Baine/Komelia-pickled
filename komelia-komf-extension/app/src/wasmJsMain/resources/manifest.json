@@ -1,5 +1,10 @@
 {
   "manifest_version": 3,
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "komf-pickled@baine.github.io"
+    }
+  },
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self';"
   },
@@ -34,9 +39,6 @@
   ],
   "permissions": [
     "storage",
-    "scripting"
-  ],
-  "optional_permissions": [
     "scripting"
   ],
   "optional_host_permissions": [
