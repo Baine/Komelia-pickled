@@ -146,3 +146,22 @@ tasks.register<Zip>("packageExtensionDev") {
     from(extensionFolderDev)
 }
 
+tasks.register<Zip>("packageExtensionSource") {
+    group = "browser-extension"
+    archiveFileName.set("komelia-komf-extension-src.zip")
+    destinationDirectory.set(layout.buildDirectory.dir("distributions"))
+
+    from(rootProject.projectDir) {
+        include("README.md")
+        include("build.gradle.kts")
+        include("settings.gradle.kts")
+        include("gradle.properties")
+        include("gradlew")
+        include("gradlew.bat")
+        include("gradle/libs.versions.toml")
+    }
+    from("$rootDir/komelia-komf-extension") {
+        into("komelia-komf-extension")
+    }
+}
+
