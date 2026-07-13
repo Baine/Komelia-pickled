@@ -114,7 +114,6 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logback.core)
             implementation(libs.logback.classic)
-            implementation(libs.secret.service)
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
             implementation(projects.komeliaInfra.onnxruntime.jvm)

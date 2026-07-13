@@ -1,5 +1,8 @@
 package snd.komelia.db
 
+// ponytail: makeJsObject duplicated in three wasm modules; not extracted because a shared wasm utility
+// module adds more build complexity than ~20 lines of duplication save. Audit skipped intentionally.
+
 internal fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
 @Suppress("UNUSED_PARAMETER")

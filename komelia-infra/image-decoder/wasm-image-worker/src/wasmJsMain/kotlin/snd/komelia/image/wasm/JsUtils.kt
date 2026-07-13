@@ -1,5 +1,7 @@
 package snd.komelia.image.wasm
 
+// ponytail: see komelia-infra/database/wasm/.../JsUtils.kt for why makeJsObject is not deduplicated.
+
 import org.khronos.webgl.Uint8Array
 import org.khronos.webgl.get
 import org.w3c.files.Blob

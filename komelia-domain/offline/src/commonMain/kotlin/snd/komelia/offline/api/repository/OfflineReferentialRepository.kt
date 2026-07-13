@@ -122,10 +122,6 @@ interface OfflineReferentialRepository {
 
     suspend fun findAllPublishers(): List<String>
 
-    suspend fun findAllPublishers(
-        pageable: KomgaPageRequest,
-    ): Page<String>
-
     suspend fun findAllPublishersByLibraries(
         libraryIds: List<KomgaLibraryId>,
     ): List<String>

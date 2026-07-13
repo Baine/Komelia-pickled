@@ -81,7 +81,7 @@ import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.CUDA
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.DirectML
 import snd.komelia.onnxruntime.OnnxRuntimeExecutionProvider.TENSOR_RT
 import snd.komelia.onnxruntime.OnnxRuntimeSharedLibraries
-import snd.komelia.secrets.AppKeyring
+import com.github.javakeyring.Keyring
 import snd.komelia.settings.ImageReaderSettingsRepository
 import snd.komelia.settings.KeyringSecretsRepository
 import snd.komelia.ui.error.NonRestartableException
@@ -176,7 +176,7 @@ class DesktopAppModule(
             colorCurvesPresetsRepository = ExposedColorCurvesPresetRepository(databases.app),
             colorLevelsPresetRepository = ExposedColorLevelsPresetRepository(databases.app),
             bookColorCorrectionRepository = ExposedBookColorCorrectionRepository(databases.app),
-            secretsRepository = KeyringSecretsRepository(AppKeyring()),
+            secretsRepository = KeyringSecretsRepository(Keyring.create()),
             komfSettingsRepository = ExposedKomfSettingsRepository(databases.app).let { repository ->
                 KomfSettingsRepositoryWrapper(
                     SettingsStateWrapper(

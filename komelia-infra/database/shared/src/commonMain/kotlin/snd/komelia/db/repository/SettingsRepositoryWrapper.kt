@@ -1,5 +1,8 @@
 package snd.komelia.db.repository
 
+// ponytail: keep separate per-interface wrappers; folding into one class creates a 430-line god class
+// and touches 24 call sites across android/jvm/wasm. Audit skipped intentionally.
+
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map

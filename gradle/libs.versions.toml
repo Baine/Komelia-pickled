@@ -1,10 +1,9 @@
 [versions]
-app-version = "0.19.0"
+app-version = "0.19.1"
 agp = "8.13.2"
 chiptextfield = "0.7.2-alpha01"
 compose-sonner = "0.3.9"
 indexeddb = "0.12.0"
-secret-service = "3.0.0-beta"
 android-compileSdk = "36"
 android-minSdk = "26"
 android-targetSdk = "36"
@@ -116,7 +115,6 @@ protobuf-javalite = { module = "com.google.protobuf:protobuf-javalite", version.
 protobuf-kotlin-lite = { module = "com.google.protobuf:protobuf-kotlin-lite", version.ref = "protobuf-lite" }
 reorderable = { module = "sh.calvin.reorderable:reorderable", version.ref = "reorderable" }
 richEditor-compose = { module = "com.mohamedrejeb.richeditor:richeditor-compose", version.ref = "richEditor" }
-secret-service = { module = "de.swiesend:secret-service", version.ref = "secret-service" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 sqlite-xerial-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 voyager-screenmodel = { module = "cafe.adriel.voyager:voyager-screenmodel", version.ref = "voyager" }

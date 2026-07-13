@@ -1,11 +1,11 @@
 package snd.komelia.settings
 
+import com.github.javakeyring.Keyring
 import com.github.javakeyring.PasswordAccessException
-import snd.komelia.secrets.AppKeyring
 
 private const val KEYRING_SERVICE_NAME = "komelia"
 
-class KeyringSecretsRepository(private val keyring: AppKeyring) : SecretsRepository {
+class KeyringSecretsRepository(private val keyring: Keyring) : SecretsRepository {
 
     override suspend fun getCookie(url: String): String? {
         return try {

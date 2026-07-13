@@ -257,7 +257,6 @@ private class WasmReferentialRepository : OfflineReferentialRepository {
     override suspend fun findAllLanguagesByLibraries(libraryIds: List<KomgaLibraryId>): List<String> = error("offline not available")
     override suspend fun findAllLanguagesByCollection(collectionId: KomgaCollectionId): List<String> = error("offline not available")
     override suspend fun findAllPublishers(): List<String> = error("offline not available")
-    override suspend fun findAllPublishers(pageable: KomgaPageRequest): Page<String> = error("offline not available")
     override suspend fun findAllPublishersByLibraries(libraryIds: List<KomgaLibraryId>): List<String> = error("offline not available")
     override suspend fun findAllPublishersByCollection(collectionId: KomgaCollectionId): List<String> = error("offline not available")
     override suspend fun findAllAgeRatings(): List<Int?> = error("offline not available")

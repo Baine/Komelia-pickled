@@ -446,11 +446,6 @@ class ExposedOfflineReferentialRepository(
         }
     }
 
-    //TODO this is unused. remove
-    override suspend fun findAllPublishers(pageable: KomgaPageRequest): Page<String> {
-        return Page.empty()
-    }
-
     override suspend fun findAllPublishersByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
         return transaction(database) {
             seriesMetaTable

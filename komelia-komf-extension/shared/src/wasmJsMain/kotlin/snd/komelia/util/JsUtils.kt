@@ -1,5 +1,7 @@
 package snd.komelia.util
 
+// ponytail: see komelia-infra/database/wasm/.../JsUtils.kt for why this is not deduplicated.
+
 fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
 @Suppress("UNUSED_PARAMETER")
