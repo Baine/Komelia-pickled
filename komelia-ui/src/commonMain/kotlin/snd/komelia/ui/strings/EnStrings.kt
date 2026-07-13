@@ -277,6 +277,7 @@ val EnStrings = AppStrings(
             providerHdoujin = "HDoujin",
             providerSpecYaml = "SpecYAML",
             providerGalleryDl = "Gallery-DL",
+            providerSchaleNetwork = "SchaleNetwork",
         )
     ),
     imageSettings = ImageSettingsStrings(

@@ -94,6 +94,7 @@ data class KomfProviderSettingsStrings(
     val providerHdoujin: String,
     val providerSpecYaml: String,
     val providerGalleryDl: String,
+    val providerSchaleNetwork: String,
 
     ) {
 
@@ -118,6 +119,7 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.HDOUJIN -> providerHdoujin
             KomfCoreProviders.SPEC_YAML -> providerSpecYaml
             KomfCoreProviders.GALLERY_DL -> providerGalleryDl
+            KomfCoreProviders.SCHALE_NETWORK -> providerSchaleNetwork
             is UnknownKomfProvider -> provider.name
         }
 }

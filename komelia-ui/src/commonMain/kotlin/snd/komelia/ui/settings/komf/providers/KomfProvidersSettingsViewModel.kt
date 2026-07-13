@@ -29,6 +29,7 @@ import snd.komf.api.KomfCoreProviders.MANGADEX
 import snd.komf.api.KomfCoreProviders.MANGA_BAKA
 import snd.komf.api.KomfCoreProviders.MANGA_UPDATES
 import snd.komf.api.KomfCoreProviders.NAUTILJON
+import snd.komf.api.KomfCoreProviders.SCHALE_NETWORK
 import snd.komf.api.KomfCoreProviders.SPEC_YAML
 import snd.komf.api.KomfCoreProviders.VIZ
 import snd.komf.api.KomfCoreProviders.WEBTOONS
@@ -180,6 +181,7 @@ class KomfProvidersSettingsViewModel(
         private val chaikaFile = GenericProviderConfigState(CHAIKA_FILE, config?.chaikaFile, this::onProviderConfigUpdate)
         private val hdoujin = GenericProviderConfigState(HDOUJIN, config?.hdoujin, this::onProviderConfigUpdate)
         private val galleryDl = GenericProviderConfigState(GALLERY_DL, config?.galleryDl, this::onProviderConfigUpdate)
+        private val schaleNetwork = GenericProviderConfigState(SCHALE_NETWORK, config?.schaleNetwork, this::onProviderConfigUpdate)
 
         var enabledProviders by mutableStateOf<List<ProviderConfigState>>(
             config?.let { config ->
@@ -203,6 +205,7 @@ class KomfProvidersSettingsViewModel(
                     if (config.chaikaFile.enabled) chaikaFile else null,
                     if (config.hdoujin.enabled) hdoujin else null,
                     if (config.galleryDl.enabled) galleryDl else null,
+                    if (config.schaleNetwork.enabled) schaleNetwork else null,
                 ).sortedBy { it.priority }
             } ?: emptyList()
         )
@@ -237,6 +240,7 @@ class KomfProvidersSettingsViewModel(
                 HDOUJIN -> hdoujin
                 SPEC_YAML -> specYaml
                 GALLERY_DL -> galleryDl
+                SCHALE_NETWORK -> schaleNetwork
                 is UnknownKomfProvider -> error("Can't add config for unknown provider ${provider.name}")
             }
 
@@ -309,6 +313,7 @@ class KomfProvidersSettingsViewModel(
                 CHAIKA_FILE -> ProvidersConfigUpdateRequest(chaikaFile = Some(config))
                 HDOUJIN -> ProvidersConfigUpdateRequest(hdoujin = Some(config))
                 GALLERY_DL -> ProvidersConfigUpdateRequest(galleryDl = Some(config))
+                SCHALE_NETWORK -> ProvidersConfigUpdateRequest(schaleNetwork = Some(config))
                 MANGADEX, ANILIST, MANGA_BAKA, SPEC_YAML, is UnknownKomfProvider -> error("Unexpected provider $provider")
             }
 
