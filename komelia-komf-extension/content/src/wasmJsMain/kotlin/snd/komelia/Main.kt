@@ -44,10 +44,10 @@ private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
         )
     )
     val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(coroutineScope)
-    val komfClientFactory = KomfClientFactory.Builder()
-        .baseUrl { komfUrl.value }
-        .ktor(createKtorClient())
-        .build()
+    val komfClientFactory = KomfClientFactory(
+        ktor = createKtorClient(),
+        baseUrl = { komfUrl.value },
+    )
     val vmFactory = KomfViewModelFactory(
         komfClientFactory = komfClientFactory,
         appNotifications = AppNotifications(),
