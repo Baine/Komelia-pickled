@@ -13,8 +13,8 @@
   },
   "name": "Komf",
   "description": "",
-  "version": "2.0.8",
-  "version_name": "2.0.8",
+  "version": "2.0.9",
+  "version_name": "2.0.9",
   "action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"

@@ -134,7 +134,7 @@ tasks.register<Sync>("assembleExtensionDev") {
 
 tasks.register<Zip>("packageExtension") {
     group = "browser-extension"
-    dependsOn("assembleExtension")
+    dependsOn("assembleExtension", "packageExtensionSource")
     archiveFileName.set("webextension.zip")
     from(extensionFolder)
 }
@@ -162,6 +162,14 @@ tasks.register<Zip>("packageExtensionSource") {
     }
     from("$rootDir/komelia-komf-extension") {
         into("komelia-komf-extension")
+        exclude("**/build/**", "**/.gradle/**")
+    }
+    from("$rootDir/../komf-client") {
+        into("komf-client")
+        exclude("**/build/**", "**/.gradle/**")
+    }
+    from("$rootDir/../komf-api-models") {
+        into("komf-api-models")
         exclude("**/build/**", "**/.gradle/**")
     }
 }
