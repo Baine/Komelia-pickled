@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "browser_specific_settings": {
     "gecko": {
-      "id": "komf-pickled@baine.github.io",
+      "id": "komf-pickled@baine.github.io2",
       "data_collection_permissions": {
         "required": ["none"]
       }
@@ -13,7 +13,7 @@
   },
   "name": "Komf",
   "description": "",
-  "version": "2.0.9",
+  "version": "2.0.10",
   "action": {
     "default_icon": "icon.png",
     "default_popup": "popup.html"
