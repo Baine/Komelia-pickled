@@ -86,7 +86,8 @@ class KavitaSeriesActions(
     }
 
     fun getSeriesTitle(): String? {
-        return (document.querySelector("app-series-detail .info-container div h4 span") as HTMLElement).innerText
+        // ponytail: safe cast — querySelector returns null if selector doesn't match current Kavita DOM
+        return (document.querySelector("app-series-detail .info-container div h4 span") as? HTMLElement)?.innerText
     }
 
     fun getSeriesId(): KomfServerSeriesId? {
