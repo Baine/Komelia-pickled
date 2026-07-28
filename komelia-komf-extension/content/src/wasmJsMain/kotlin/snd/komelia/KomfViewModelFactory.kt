@@ -30,6 +30,8 @@ class KomfViewModelFactory(
         notifications = appNotifications,
     )
 
+    val forceMatch = settingsRepository.getForceMatch()
+
     fun getKomfSettingsViewModel(
         mediaServer: MediaServer
     ): KomfSettingsViewModel {
@@ -83,6 +85,7 @@ class KomfViewModelFactory(
         libraryId: KomfServerLibraryId,
         seriesName: String,
         mediaServer: MediaServer,
+        forceMatch: Boolean = false,
         onDismissRequest: () -> Unit
     ): KomfIdentifyDialogViewModel {
         return KomfIdentifyDialogViewModel(
@@ -93,6 +96,7 @@ class KomfViewModelFactory(
             komfMetadataClient = komfClientFactory.metadataClient(mediaServer),
             komfJobClient = komfClientFactory.jobClient(),
             appNotifications = appNotifications,
+            forceMatch = forceMatch,
             onDismiss = onDismissRequest,
         )
     }
@@ -111,11 +115,13 @@ class KomfViewModelFactory(
     fun getKomfLibraryIdentifyViewModel(
         libraryId: KomfServerLibraryId,
         mediaServer: MediaServer,
+        forceMatch: Boolean = false,
     ): KomfLibraryIdentifyViewmodel {
         return KomfLibraryIdentifyViewmodel(
             libraryId = libraryId,
             komfMetadataClient = komfClientFactory.metadataClient(mediaServer),
             appNotifications = appNotifications,
+            forceMatch = forceMatch,
         )
     }
 }

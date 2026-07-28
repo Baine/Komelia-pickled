@@ -51,6 +51,8 @@ fun KomfSettingsContent(
     komfConnectionError: String?,
     komgaState: KomgaConnectionState?,
     kavitaState: KavitaConnectionState?,
+    forceMatch: Boolean = false,
+    onForceMatchChange: (Boolean) -> Unit = {},
 ) {
     Column(
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -95,6 +97,11 @@ fun KomfSettingsContent(
 
                 AnimatedVisibility(komfConnectionError == null) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                        SwitchWithLabel(
+                            checked = forceMatch,
+                            onCheckedChange = onForceMatchChange,
+                            label = { Text("Force Match (bypass cache)") },
+                        )
                         HorizontalDivider(Modifier.padding(vertical = 10.dp))
                         when {
                             komgaState != null && kavitaState != null -> KomgaAndKavitaConnectionSettings(

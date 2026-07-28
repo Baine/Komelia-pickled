@@ -25,4 +25,12 @@ class KomfSettingsRepositoryWrapper(
         wrapper.transform { it.copy(remoteUrl = url) }
     }
 
+    override fun getForceMatch(): Flow<Boolean> {
+        return wrapper.mapState { it.forceMatch }
+    }
+
+    override suspend fun putForceMatch(force: Boolean) {
+        wrapper.transform { it.copy(forceMatch = force) }
+    }
+
 }

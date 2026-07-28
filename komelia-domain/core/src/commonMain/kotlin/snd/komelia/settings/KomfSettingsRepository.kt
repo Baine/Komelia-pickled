@@ -8,4 +8,7 @@ interface KomfSettingsRepository {
 
     fun getKomfUrl(): Flow<String>
     suspend fun putKomfUrl(url: String)
+
+    fun getForceMatch(): Flow<Boolean>
+    suspend fun putForceMatch(force: Boolean)
 }

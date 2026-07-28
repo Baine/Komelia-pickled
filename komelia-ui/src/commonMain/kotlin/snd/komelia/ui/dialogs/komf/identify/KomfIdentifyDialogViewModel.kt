@@ -42,6 +42,7 @@ class KomfIdentifyDialogViewModel(
     komfJobClient: KomfJobClient,
     private val komfConfig: KomfSharedState,
     private val appNotifications: AppNotifications,
+    forceMatch: Boolean = false,
     onDismiss: () -> Unit,
 ) {
     private val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
@@ -56,6 +57,7 @@ class KomfIdentifyDialogViewModel(
         seriesName = seriesName,
         komfMetadataClient = komfMetadataClient,
         appNotifications = appNotifications,
+        forceMatch = forceMatch,
         state = mutableState,
         onSearch = {
             searchResultsState.searchResults = it
@@ -265,6 +267,7 @@ class KomfIdentifyDialogViewModel(
         seriesName: String,
         private val komfMetadataClient: KomfMetadataClient,
         private val appNotifications: AppNotifications,
+        private val forceMatch: Boolean = false,
         private val onSearch: (List<KomfMetadataSeriesSearchResult>) -> Unit,
         private val onAutoIdentify: (KomfMetadataJobId) -> Unit,
         private val state: MutableStateFlow<LoadState<Unit>>,
@@ -293,7 +296,8 @@ class KomfIdentifyDialogViewModel(
 
                 val response = komfMetadataClient.matchSeries(
                     libraryId = libraryId,
-                    seriesId = seriesId
+                    seriesId = seriesId,
+                    force = forceMatch
                 )
                 state.value = LoadState.Success(Unit)
                 onAutoIdentify(response.jobId)

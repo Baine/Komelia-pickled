@@ -39,6 +39,8 @@ class ConnectionTab(private val mediaServer: MediaServer) : DialogTab {
                 integrationToggleEnabled = false,
                 komgaState = if (mediaServer == MediaServer.KOMGA) vm.komgaConnectionState else null,
                 kavitaState = if (mediaServer == MediaServer.KAVITA) vm.kavitaConnectionState else null,
+                forceMatch = vm.forceMatch.collectAsState().value,
+                onForceMatchChange = vm::onForceMatchChange,
             )
         }
     }

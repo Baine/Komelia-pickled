@@ -37,6 +37,7 @@ class KomfSettingsViewModel(
 
     val komfEnabled = MutableStateFlow(false)
     val komfUrl = MutableStateFlow("http://localhost:8085")
+    val forceMatch = MutableStateFlow(false)
 
     val komfConnectionError = komfSharedState.configError
         .map { error -> error?.let { formatExceptionMessage(it) } }
@@ -60,6 +61,7 @@ class KomfSettingsViewModel(
     suspend fun initialize() {
         komfEnabled.value = settingsRepository.getKomfEnabled().first()
         komfUrl.value = settingsRepository.getKomfUrl().first()
+        forceMatch.value = settingsRepository.getForceMatch().first()
 
         if (!integrationToggleEnabled || komfEnabled.value) {
             launchConfigFlowListener()
@@ -100,6 +102,13 @@ class KomfSettingsViewModel(
             komfSharedState.loadConfig()
         }
 
+    }
+
+    fun onForceMatchChange(force: Boolean) {
+        this.forceMatch.value = force
+        screenModelScope.launch {
+            settingsRepository.putForceMatch(force)
+        }
     }
 
     private suspend fun updateConfig(request: KomfConfigUpdateRequest) {
