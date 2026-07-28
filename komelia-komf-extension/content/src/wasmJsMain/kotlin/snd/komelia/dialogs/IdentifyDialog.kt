@@ -41,7 +41,7 @@ fun IdentifyDialog(
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalKomfViewModelFactory.current
-    val forceMatch by viewModelFactory.forceMatch.collectAsState(initial = false)
+    val forceMatch = viewModelFactory.forceMatch.collectAsState(initial = false).value
     val vm = remember(forceMatch) {
         viewModelFactory.getKomfIdentifyDialogViewModel(
             seriesId = seriesId,
@@ -90,7 +90,7 @@ fun LibraryAutoIdentifyDialog(
     onDismissRequest: () -> Unit,
 ) {
     val viewModelFactory = LocalKomfViewModelFactory.current
-    val forceMatch by viewModelFactory.forceMatch.collectAsState(initial = false)
+    val forceMatch = viewModelFactory.forceMatch.collectAsState(initial = false).value
     val vm = remember(forceMatch) {
         viewModelFactory.getKomfLibraryIdentifyViewModel(libraryId = libraryId, mediaServer = mediaServer, forceMatch = forceMatch)
     }
