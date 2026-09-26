@@ -674,10 +674,6 @@ class NoopOfflineReferentialRepository : OfflineReferentialRepository {
         TODO("Not yet implemented")
     }
 
-    override suspend fun findAllPublishers(pageable: KomgaPageRequest): Page<String> {
-        TODO("Not yet implemented")
-    }
-
     override suspend fun findAllPublishersByLibraries(libraryIds: List<KomgaLibraryId>): List<String> {
         TODO("Not yet implemented")
     }
