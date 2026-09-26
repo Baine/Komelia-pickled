@@ -106,7 +106,7 @@ private fun readFromLinearMemory(base: Pointer, offset: Int, length: Int): ByteA
 //language=js
 private fun getResourceUrl(): String = js("{ return chrome.runtime.getURL('strings.commonMain.cvr'); }")
 
-@JsFun("(blob) => blob.arrayBuffer()")
+@JsFun("(blob) => Promise.resolve(blob.arrayBuffer())")
 private external fun jsExportBlobAsArrayBuffer(blob: Blob): Promise<ArrayBuffer>
 
 private external interface AbortSignal
@@ -115,7 +115,11 @@ private external class AbortController {
     fun abort()
 }
 
-@JsFun("(url, signal) => window.fetch(url, { signal })")
+// Kotlin/Wasm inserts an `instanceof Promise` check on Promise-typed @JsFun returns.
+// Firefox content scripts get *page-realm* promises from window.fetch/blob.arrayBuffer,
+// which fail that check ("Cannot cast instance of Promise to Promise: incompatible types").
+// Re-wrapping via the extension-realm Promise.resolve passes the check in both browsers.
+@JsFun("(url, signal) => Promise.resolve(window.fetch(url, { signal }))")
 private external fun jsFetchWithSignal(url: String, signal: AbortSignal): Promise<Response>
 
 @Suppress("UNCHECKED_CAST")
