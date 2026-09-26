@@ -16,6 +16,10 @@ kotlin {
         browser {
             commonWebpackConfig { devtool = "false" }
         }
+        // fork-only: surface JS error messages in popup (newOriginError relies on Throwable.message)
+        compilerOptions {
+            freeCompilerArgs.add("-Xwasm-attach-js-exception")
+        }
     }
 
     sourceSets {

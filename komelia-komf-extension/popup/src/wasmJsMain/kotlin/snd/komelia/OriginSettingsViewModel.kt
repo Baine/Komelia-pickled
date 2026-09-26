@@ -57,6 +57,8 @@ class OriginSettingsViewModel {
 }
 
 private fun scriptingPermissionObject(origin: String): Permissions {
-    js("return { permissions: ['scripting'], origins: [origin]};")
+    // 'scripting' is granted at install (manifest permissions). Requesting it in the same
+    // call makes Firefox reject the whole request, so only the host origin is requested.
+    js("return { origins: [origin]};")
 }
 
