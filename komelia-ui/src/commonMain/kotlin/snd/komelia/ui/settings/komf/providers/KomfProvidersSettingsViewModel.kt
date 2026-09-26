@@ -20,13 +20,14 @@ import snd.komf.api.KomfCoreProviders.BOOK_WALKER
 import snd.komf.api.KomfCoreProviders.CHAIKA_FILE
 import snd.komf.api.KomfCoreProviders.COMIC_VINE
 import snd.komf.api.KomfCoreProviders.GALLERY_DL
-import snd.komf.api.KomfCoreProviders.GERMAN
 import snd.komf.api.KomfCoreProviders.HDOUJIN
 import snd.komf.api.KomfCoreProviders.HENTAG
 import snd.komf.api.KomfCoreProviders.KODANSHA
 import snd.komf.api.KomfCoreProviders.MAL
 import snd.komf.api.KomfCoreProviders.MANGADEX
+import snd.komf.api.KomfCoreProviders.MANGADEX_DE
 import snd.komf.api.KomfCoreProviders.MANGA_BAKA
+import snd.komf.api.KomfCoreProviders.MANGA_PASSION
 import snd.komf.api.KomfCoreProviders.MANGA_UPDATES
 import snd.komf.api.KomfCoreProviders.NAUTILJON
 import snd.komf.api.KomfCoreProviders.SCHALE_NETWORK
@@ -165,7 +166,10 @@ class KomfProvidersSettingsViewModel(
         private val bookWalker =
             GenericProviderConfigState(BOOK_WALKER, config?.bookWalker, this::onProviderConfigUpdate)
         private val comicVine = GenericProviderConfigState(COMIC_VINE, config?.comicVine, this::onProviderConfigUpdate)
-        private val german = GenericProviderConfigState(GERMAN, config?.german, this::onProviderConfigUpdate)
+        private val mangaDexDe =
+            GenericProviderConfigState(MANGADEX_DE, config?.mangaDexDe, this::onProviderConfigUpdate)
+        private val mangaPassion =
+            GenericProviderConfigState(MANGA_PASSION, config?.mangaPassion, this::onProviderConfigUpdate)
         private val hentag = GenericProviderConfigState(HENTAG, config?.hentag, this::onProviderConfigUpdate)
         private val kodansha = GenericProviderConfigState(KODANSHA, config?.kodansha, this::onProviderConfigUpdate)
         private val mal = GenericProviderConfigState(MAL, config?.mal, this::onProviderConfigUpdate)
@@ -190,7 +194,8 @@ class KomfProvidersSettingsViewModel(
                     if (config.bangumi.enabled) bangumi else null,
                     if (config.bookWalker.enabled) bookWalker else null,
                     if (config.comicVine.enabled) comicVine else null,
-                    if (config.german.enabled) german else null,
+                    if (config.mangaDexDe.enabled) mangaDexDe else null,
+                    if (config.mangaPassion.enabled) mangaPassion else null,
                     if (config.hentag.enabled) hentag else null,
                     if (config.kodansha.enabled) kodansha else null,
                     if (config.mal.enabled) mal else null,
@@ -225,7 +230,8 @@ class KomfProvidersSettingsViewModel(
                 BANGUMI -> bangumi
                 BOOK_WALKER -> bookWalker
                 COMIC_VINE -> comicVine
-                GERMAN -> german
+                MANGADEX_DE -> mangaDexDe
+                MANGA_PASSION -> mangaPassion
                 HENTAG -> hentag
                 KODANSHA -> kodansha
                 MAL -> mal
@@ -301,7 +307,8 @@ class KomfProvidersSettingsViewModel(
                 BANGUMI -> ProvidersConfigUpdateRequest(bangumi = Some(config))
                 BOOK_WALKER -> ProvidersConfigUpdateRequest(bookWalker = Some(config))
                 COMIC_VINE -> ProvidersConfigUpdateRequest(comicVine = Some(config))
-                GERMAN -> ProvidersConfigUpdateRequest(german = Some(config))
+                MANGADEX_DE -> ProvidersConfigUpdateRequest(mangaDexDe = Some(config))
+                MANGA_PASSION -> ProvidersConfigUpdateRequest(mangaPassion = Some(config))
                 HENTAG -> ProvidersConfigUpdateRequest(hentag = Some(config))
                 KODANSHA -> ProvidersConfigUpdateRequest(kodansha = Some(config))
                 MAL -> ProvidersConfigUpdateRequest(mal = Some(config))

@@ -79,7 +79,8 @@ data class KomfProviderSettingsStrings(
     val providerBangumi: String,
     val providerBookWalker: String,
     val providerComicVine: String,
-    val providerGerman: String,
+    val providerMangaDexDe: String,
+    val providerMangaPassion: String,
     val providerHentag: String,
     val providerKodansha: String,
     val providerMal: String,
@@ -104,7 +105,8 @@ data class KomfProviderSettingsStrings(
             KomfCoreProviders.BANGUMI -> providerBangumi
             KomfCoreProviders.BOOK_WALKER -> providerBookWalker
             KomfCoreProviders.COMIC_VINE -> providerComicVine
-            KomfCoreProviders.GERMAN -> providerGerman
+            KomfCoreProviders.MANGADEX_DE -> providerMangaDexDe
+            KomfCoreProviders.MANGA_PASSION -> providerMangaPassion
             KomfCoreProviders.HENTAG -> providerHentag
             KomfCoreProviders.KODANSHA -> providerKodansha
             KomfCoreProviders.MAL -> providerMal
