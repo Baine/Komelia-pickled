@@ -1,7 +1,6 @@
 package snd.komelia
 
 import snd.komelia.settings.KomfSettingsRepository
-import snd.komelia.ui.AppNotifications
 import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
 import snd.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
 import snd.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel

@@ -11,4 +11,6 @@ interface KomfSettingsRepository {
 
     fun getForceMatch(): Flow<Boolean>
     suspend fun putForceMatch(force: Boolean)
+    fun getMangaBakaEnabled(): Flow<Boolean>
+    suspend fun putMangaBakaEnabled(enabled: Boolean)
 }

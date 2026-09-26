@@ -5,10 +5,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
 import snd.komelia.AppNotifications
@@ -40,11 +43,11 @@ import snd.komf.api.KomfProviders
 import snd.komf.api.PatchValue.Some
 import snd.komf.api.UnknownKomfProvider
 import snd.komf.api.config.AniListConfigUpdateRequest
+import snd.komf.api.config.DownloadProgress
 import snd.komf.api.config.KomfConfig
 import snd.komf.api.config.KomfConfigUpdateRequest
 import snd.komf.api.config.MangaBakaConfigUpdateRequest
 import snd.komf.api.config.MangaBakaDatabaseDto
-import snd.komf.api.config.MangaBakaDownloadProgress
 import snd.komf.api.config.MangaDexConfigUpdateRequest
 import snd.komf.api.config.MetadataProvidersConfigUpdateRequest
 import snd.komf.api.config.SpecYAMLConfigUpdateRequest
@@ -53,6 +56,7 @@ import snd.komf.api.config.ProvidersConfigDto
 import snd.komf.api.config.ProvidersConfigUpdateRequest
 import snd.komf.api.mediaserver.KomfMediaServerLibraryId
 import snd.komf.client.KomfConfigClient
+import kotlin.time.Instant
 
 class KomfProvidersSettingsViewModel(
     private val komfConfigClient: KomfConfigClient,
@@ -83,6 +87,7 @@ class KomfProvidersSettingsViewModel(
         private set
     var mangaBakaDbMetadata by mutableStateOf<MangaBakaDatabaseDto?>(null)
         private set
+    var bookWalkerDownloadTimestamp by mutableStateOf<Instant?>(null)
 
     suspend fun initialize() {
         appNotifications.runCatchingToNotifications { komfSharedState.getConfig() }
@@ -105,6 +110,7 @@ class KomfProvidersSettingsViewModel(
         malClientId = config.metadataProviders.malClientId
         nameMatchingMode = config.metadataProviders.nameMatchingMode
         mangaBakaDbMetadata = config.metadataProviders.mangaBakaDatabase
+        bookWalkerDownloadTimestamp = config.metadataProviders.bookWalkerDownloadDate
     }
 
     private fun updateConfig(request: MetadataProvidersConfigUpdateRequest) {
@@ -152,8 +158,16 @@ class KomfProvidersSettingsViewModel(
         updateConfig(providersUpdate)
     }
 
-    fun onMangaBakaDbUpdate(): Flow<MangaBakaDownloadProgress> {
+    fun onMangaBakaDbUpdate(): Flow<DownloadProgress> {
         return komfConfigClient.updateMangaBakaDb()
+            .flowOn(Dispatchers.Default)
+            .onCompletion { komfSharedState.loadConfig() }
+    }
+
+    fun onBookWalkerDbUpdate(): Flow<DownloadProgress> {
+        return komfConfigClient.updateBookWalkerDb()
+            .flowOn(Dispatchers.Default)
+            .onCompletion { komfSharedState.loadConfig() }
     }
 
     class ProvidersConfigState(
@@ -162,7 +176,6 @@ class KomfProvidersSettingsViewModel(
         config: ProvidersConfigDto?,
     ) {
         private val aniList = AniListConfigState(ANILIST, config?.aniList, this::onAniListConfigUpdate)
-        private val bangumi = GenericProviderConfigState(BANGUMI, config?.bangumi, this::onProviderConfigUpdate)
         private val bookWalker =
             GenericProviderConfigState(BOOK_WALKER, config?.bookWalker, this::onProviderConfigUpdate)
         private val comicVine = GenericProviderConfigState(COMIC_VINE, config?.comicVine, this::onProviderConfigUpdate)
@@ -170,47 +183,34 @@ class KomfProvidersSettingsViewModel(
             GenericProviderConfigState(MANGADEX_DE, config?.mangaDexDe, this::onProviderConfigUpdate)
         private val mangaPassion =
             GenericProviderConfigState(MANGA_PASSION, config?.mangaPassion, this::onProviderConfigUpdate)
-        private val hentag = GenericProviderConfigState(HENTAG, config?.hentag, this::onProviderConfigUpdate)
-        private val kodansha = GenericProviderConfigState(KODANSHA, config?.kodansha, this::onProviderConfigUpdate)
         private val mal = GenericProviderConfigState(MAL, config?.mal, this::onProviderConfigUpdate)
         private val mangaUpdates =
             GenericProviderConfigState(MANGA_UPDATES, config?.mangaUpdates, this::onProviderConfigUpdate)
         private val mangaBaka = MangaBakaConfigState(MANGA_BAKA, config?.mangaBaka, this::onMangaBakaConfigUpdate)
         private val mangaDex = MangaDexConfigState(MANGADEX, config?.mangaDex, this::onMangaDexConfigUpdate)
-        private val nautiljon = GenericProviderConfigState(NAUTILJON, config?.nautiljon, this::onProviderConfigUpdate)
-        private val yenPress = GenericProviderConfigState(YEN_PRESS, config?.yenPress, this::onProviderConfigUpdate)
-        private val viz = GenericProviderConfigState(VIZ, config?.viz, this::onProviderConfigUpdate)
-        private val webtoons = GenericProviderConfigState(WEBTOONS, config?.webtoons, this::onProviderConfigUpdate)
-        private val specYaml = SpecYAMLConfigState(SPEC_YAML, config?.specYaml, this::onSpecYAMLConfigUpdate)
         private val chaikaFile = GenericProviderConfigState(CHAIKA_FILE, config?.chaikaFile, this::onProviderConfigUpdate)
-        private val hdoujin = GenericProviderConfigState(HDOUJIN, config?.hdoujin, this::onProviderConfigUpdate)
         private val galleryDl = GenericProviderConfigState(GALLERY_DL, config?.galleryDl, this::onProviderConfigUpdate)
+        private val hdoujin = GenericProviderConfigState(HDOUJIN, config?.hdoujin, this::onProviderConfigUpdate)
         private val schaleNetwork = GenericProviderConfigState(SCHALE_NETWORK, config?.schaleNetwork, this::onProviderConfigUpdate)
+        private val specYaml = SpecYAMLConfigState(SPEC_YAML, config?.specYaml, this::onSpecYAMLConfigUpdate)
 
         var enabledProviders by mutableStateOf<List<ProviderConfigState>>(
             config?.let { config ->
                 listOfNotNull(
                     if (config.aniList.enabled) aniList else null,
-                    if (config.bangumi.enabled) bangumi else null,
                     if (config.bookWalker.enabled) bookWalker else null,
                     if (config.comicVine.enabled) comicVine else null,
                     if (config.mangaDexDe.enabled) mangaDexDe else null,
                     if (config.mangaPassion.enabled) mangaPassion else null,
-                    if (config.hentag.enabled) hentag else null,
-                    if (config.kodansha.enabled) kodansha else null,
                     if (config.mal.enabled) mal else null,
                     if (config.mangaUpdates.enabled) mangaUpdates else null,
                     if (config.mangaDex.enabled) mangaDex else null,
                     if (config.mangaBaka.enabled) mangaBaka else null,
-                    if (config.nautiljon.enabled) nautiljon else null,
-                    if (config.yenPress.enabled) yenPress else null,
-                    if (config.viz.enabled) viz else null,
-                    if (config.webtoons.enabled) webtoons else null,
-                    if (config.specYaml.enabled) specYaml else null,
                     if (config.chaikaFile.enabled) chaikaFile else null,
-                    if (config.hdoujin.enabled) hdoujin else null,
                     if (config.galleryDl.enabled) galleryDl else null,
+                    if (config.hdoujin.enabled) hdoujin else null,
                     if (config.schaleNetwork.enabled) schaleNetwork else null,
+                    if (config.specYaml.enabled) specYaml else null,
                 ).sortedBy { it.priority }
             } ?: emptyList()
         )
@@ -227,26 +227,22 @@ class KomfProvidersSettingsViewModel(
         fun onProviderAdd(provider: KomfProviders) {
             val configState = when (provider) {
                 ANILIST -> aniList
-                BANGUMI -> bangumi
                 BOOK_WALKER -> bookWalker
                 COMIC_VINE -> comicVine
                 MANGADEX_DE -> mangaDexDe
                 MANGA_PASSION -> mangaPassion
-                HENTAG -> hentag
-                KODANSHA -> kodansha
                 MAL -> mal
                 MANGA_UPDATES -> mangaUpdates
                 MANGADEX -> mangaDex
-                NAUTILJON -> nautiljon
-                YEN_PRESS -> yenPress
-                VIZ -> viz
                 MANGA_BAKA -> mangaBaka
-                WEBTOONS -> webtoons
                 CHAIKA_FILE -> chaikaFile
-                HDOUJIN -> hdoujin
-                SPEC_YAML -> specYaml
                 GALLERY_DL -> galleryDl
+                HDOUJIN -> hdoujin
                 SCHALE_NETWORK -> schaleNetwork
+                SPEC_YAML -> specYaml
+                BANGUMI, HENTAG,
+                KODANSHA, NAUTILJON,
+                YEN_PRESS, VIZ, WEBTOONS -> error("Unsupported")
                 is UnknownKomfProvider -> error("Can't add config for unknown provider ${provider.name}")
             }
 
@@ -304,23 +300,17 @@ class KomfProvidersSettingsViewModel(
 
         private fun onProviderConfigUpdate(config: ProviderConfigUpdateRequest, provider: KomfProviders) {
             val update = when (provider) {
-                BANGUMI -> ProvidersConfigUpdateRequest(bangumi = Some(config))
                 BOOK_WALKER -> ProvidersConfigUpdateRequest(bookWalker = Some(config))
                 COMIC_VINE -> ProvidersConfigUpdateRequest(comicVine = Some(config))
                 MANGADEX_DE -> ProvidersConfigUpdateRequest(mangaDexDe = Some(config))
                 MANGA_PASSION -> ProvidersConfigUpdateRequest(mangaPassion = Some(config))
-                HENTAG -> ProvidersConfigUpdateRequest(hentag = Some(config))
-                KODANSHA -> ProvidersConfigUpdateRequest(kodansha = Some(config))
                 MAL -> ProvidersConfigUpdateRequest(mal = Some(config))
                 MANGA_UPDATES -> ProvidersConfigUpdateRequest(mangaUpdates = Some(config))
-                NAUTILJON -> ProvidersConfigUpdateRequest(nautiljon = Some(config))
-                YEN_PRESS -> ProvidersConfigUpdateRequest(yenPress = Some(config))
-                VIZ -> ProvidersConfigUpdateRequest(viz = Some(config))
-                WEBTOONS -> ProvidersConfigUpdateRequest(webtoons = Some(config))
                 CHAIKA_FILE -> ProvidersConfigUpdateRequest(chaikaFile = Some(config))
-                HDOUJIN -> ProvidersConfigUpdateRequest(hdoujin = Some(config))
                 GALLERY_DL -> ProvidersConfigUpdateRequest(galleryDl = Some(config))
+                HDOUJIN -> ProvidersConfigUpdateRequest(hdoujin = Some(config))
                 SCHALE_NETWORK -> ProvidersConfigUpdateRequest(schaleNetwork = Some(config))
+                BANGUMI, HENTAG, KODANSHA, NAUTILJON, YEN_PRESS, VIZ, WEBTOONS,
                 MANGADEX, ANILIST, MANGA_BAKA, SPEC_YAML, is UnknownKomfProvider -> error("Unexpected provider $provider")
             }
 
@@ -331,7 +321,5 @@ class KomfProvidersSettingsViewModel(
             }
             onMetadataUpdate(providersUpdate)
         }
-
     }
-
 }

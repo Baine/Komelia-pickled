@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -46,12 +44,9 @@ fun ErrorView(
     onExit: () -> Unit
 ) {
     val stacktrace = exception.stackTraceToString().replace("\t", "    ")
-    val errorText = remember {
-        buildString {
-            append("Encountered Unrecoverable Error: ")
-            append("\"${exception::class.simpleName} ${exception.message}\"")
-        }
-    }
+    val errorText =
+        "encountered unrecoverable error" + "\"${exception::class.simpleName} ${exception.message}\""
+//        stringResource(Res.string.error_unrecoverable, "\"${exception::class.simpleName} ${exception.message}\"")
     ErrorView(
         exceptionMessage = errorText,
         stacktrace = stacktrace,
@@ -61,7 +56,6 @@ fun ErrorView(
     )
 }
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun ErrorView(
     exceptionMessage: String,
@@ -90,7 +84,7 @@ fun ErrorView(
                 ) {
                     TooltipBox(
                         positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
-                        tooltip = { Text("Copied to clipboard") },
+                        tooltip = { Text("copied to clipboard") },
                         state = tooltipState,
                         enableUserInput = false
                     ) {
@@ -100,21 +94,21 @@ fun ErrorView(
                                 scope.launch { tooltipState.show() }
                             },
                         ) {
-                            Text("Copy stacktrace to clipboard")
+                            Text("copy stacktrace to clipboard")
                         }
                     }
                     if (isRestartable) {
                         Button(
                             onClick = onRestart,
                         ) {
-                            Text("Restart")
+                            Text("restart")
                         }
 
                     }
                     Button(
                         onClick = onExit,
                     ) {
-                        Text("Exit")
+                        Text("exit")
                     }
                 }
             }

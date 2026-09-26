@@ -26,6 +26,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_bulk_select_desc
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.series_list_series_count
+import org.jetbrains.compose.resources.pluralStringResource
+import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalWindowWidth
 import snd.komelia.ui.common.components.PageSizeSelectionDropdown
 import snd.komelia.ui.common.itemlist.SeriesLazyCardGrid
@@ -40,19 +46,18 @@ import snd.komelia.ui.platform.WindowSizeClass.MEDIUM
 import snd.komelia.ui.platform.cursorForHand
 import snd.komelia.ui.series.SeriesFilterState
 import snd.komelia.ui.series.view.SeriesFilterContent
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesListContent(
-    series: List<KomgaSeries>,
+    series: List<KomeliaSeries>,
     seriesTotalCount: Int,
     seriesActions: SeriesMenuActions,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 
     editMode: Boolean,
     onEditModeChange: (Boolean) -> Unit,
-    selectedSeries: List<KomgaSeries>,
-    onSeriesSelect: (KomgaSeries) -> Unit,
+    selectedSeries: List<KomeliaSeries>,
+    onSeriesSelect: (KomeliaSeries) -> Unit,
 
     isLoading: Boolean,
     filterState: SeriesFilterState?,
@@ -113,9 +118,9 @@ fun SeriesListContent(
 @Composable
 private fun BulkActionsToolbar(
     onCancel: () -> Unit,
-    series: List<KomgaSeries>,
-    selectedSeries: List<KomgaSeries>,
-    onSeriesSelect: (KomgaSeries) -> Unit,
+    series: List<KomeliaSeries>,
+    selectedSeries: List<KomeliaSeries>,
+    onSeriesSelect: (KomeliaSeries) -> Unit,
 ) {
     BulkActionsContainer(
         onCancel = onCancel,
@@ -129,7 +134,7 @@ private fun BulkActionsToolbar(
         when (LocalWindowWidth.current) {
             FULL, EXPANDED -> {
                 if (selectedSeries.isEmpty()) {
-                    Text("Click on items to select or deselect them")
+                    Text(stringResource(Res.string.series_bulk_select_desc))
                 } else {
                     Spacer(Modifier.weight(1f))
                     SeriesBulkActionsContent(selectedSeries, false)
@@ -178,7 +183,15 @@ private fun ToolBar(
                 if (seriesTotalCount != 0) {
                     SuggestionChip(
                         onClick = {},
-                        label = { Text("$seriesTotalCount series") },
+                        label = {
+                            Text(
+                                pluralStringResource(
+                                    Res.plurals.series_list_series_count,
+                                    seriesTotalCount,
+                                    seriesTotalCount
+                                )
+                            )
+                        },
                     )
 
                     Spacer(Modifier.weight(1f))

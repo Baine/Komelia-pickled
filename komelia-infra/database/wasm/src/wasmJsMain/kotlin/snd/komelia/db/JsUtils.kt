@@ -2,6 +2,7 @@ package snd.komelia.db
 
 // ponytail: makeJsObject duplicated in three wasm modules; not extracted because a shared wasm utility
 // module adds more build complexity than ~20 lines of duplication save. Audit skipped intentionally.
+import com.juul.indexeddb.Key
 
 internal fun <T : JsAny> makeJsObject(): T = js("{ return {}; }")
 
@@ -19,3 +20,5 @@ internal operator fun JsAny.set(name: String, value: JsAny) =
 
 internal operator fun JsAny.set(name: String, value: String) =
     setObjectField(this, name, value.toJsString())
+
+fun Key(key: String): Key = Key(key.toJsString())

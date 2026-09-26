@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.book.BookViewModel
 import snd.komelia.ui.collection.CollectionViewModel
 import snd.komelia.ui.color.ColorCorrectionViewModel
@@ -25,6 +26,8 @@ import snd.komelia.ui.dialogs.collectionedit.CollectionEditDialogViewModel
 import snd.komelia.ui.dialogs.filebrowser.FileBrowserDialogViewModel
 import snd.komelia.ui.dialogs.komf.identify.KomfIdentifyDialogViewModel
 import snd.komelia.ui.dialogs.komf.identify.KomfLibraryIdentifyViewmodel
+import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaLinkViewModel
+import snd.komelia.ui.dialogs.komf.mangabaka.KomfMangaBakaUnlinkViewModel
 import snd.komelia.ui.dialogs.komf.reset.KomfResetMetadataDialogViewModel
 import snd.komelia.ui.dialogs.libraryedit.LibraryEditDialogViewModel
 import snd.komelia.ui.dialogs.oneshot.OneshotEditDialogViewModel
@@ -59,6 +62,7 @@ import snd.komelia.ui.settings.imagereader.ImageReaderSettingsViewModel
 import snd.komelia.ui.settings.komf.KomfSharedState
 import snd.komelia.ui.settings.komf.general.KomfSettingsViewModel
 import snd.komelia.ui.settings.komf.jobs.KomfJobsViewModel
+import snd.komelia.ui.settings.komf.mangabaka.KomfMangaBakaSettingsViewModel
 import snd.komelia.ui.settings.komf.notifications.KomfNotificationSettingsViewModel
 import snd.komelia.ui.settings.komf.processing.KomfProcessingSettingsViewModel
 import snd.komelia.ui.settings.komf.providers.KomfProvidersSettingsViewModel
@@ -83,7 +87,6 @@ import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
 import snd.komga.client.readlist.KomgaReadList
 import snd.komga.client.readlist.KomgaReadListId
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.user.KomgaUser
 
@@ -129,7 +132,7 @@ class ViewModelFactory(
             komgaEvents = dependencies.komgaEvents.events,
             libraryFlow = getLibraryFlow(libraryId),
             settingsRepository = appRepositories.settingsRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
@@ -140,7 +143,7 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             komgaEvents = dependencies.komgaEvents.events,
             filterRepository = appRepositories.homeScreenFilterRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
             cardWidthFlow = getGridCardWidth(),
         )
     }
@@ -174,24 +177,26 @@ class ViewModelFactory(
             ),
             notificationsState = NotificationsState(
                 komgaEvents = dependencies.komgaEvents.events,
-                bookDownloadEvents = dependencies.offlineDependencies.bookDownloadEvents
+                bookDownloadEvents = dependencies.offlineDependencies?.bookDownloadEvents
             ),
             libraries = dependencies.komgaSharedState.libraries,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
     fun getSeriesViewModel(
         seriesId: KomgaSeriesId,
-        series: KomgaSeries? = null,
+        series: KomeliaSeries? = null,
         defaultTab: SeriesTab? = null,
     ) = SeriesViewModel(
         seriesId = seriesId,
         series = series,
         libraries = dependencies.komgaSharedState.libraries,
         seriesApi = komgaApi.seriesApi,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
+        komfMangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
+        komfSettingsRepository = dependencies.appRepositories.komfSettingsRepository,
         bookApi = komgaApi.bookApi,
         collectionApi = komgaApi.collectionsApi,
         notifications = dependencies.appNotifications,
@@ -211,13 +216,13 @@ class ViewModelFactory(
             libraries = dependencies.komgaSharedState.libraries,
             settingsRepository = appRepositories.settingsRepository,
             readListApi = komgaApi.readListApi,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         )
     }
 
     fun getOneshotViewModel(
         seriesId: KomgaSeriesId,
-        series: KomgaSeries? = null,
+        series: KomeliaSeries? = null,
         book: KomeliaBook? = null,
     ) = OneshotViewModel(
         series = series,
@@ -228,7 +233,7 @@ class ViewModelFactory(
         events = dependencies.komgaEvents.events,
         notifications = dependencies.appNotifications,
         libraries = dependencies.komgaSharedState.libraries,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         settingsRepository = appRepositories.settingsRepository,
         readListApi = komgaApi.readListApi,
         collectionApi = komgaApi.collectionsApi,
@@ -247,7 +252,6 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
             readerSettingsRepository = appRepositories.imageReaderSettingsRepository,
             imageLoader = dependencies.bookImageLoader,
-            appStrings = dependencies.appStrings,
             readerImageFactory = dependencies.readerImageFactory,
             currentBookId = imageReaderCurrentBook,
             colorCorrectionRepository = appRepositories.bookColorCorrectionRepository,
@@ -264,15 +268,16 @@ class ViewModelFactory(
         return LoginViewModel(
             settingsRepository = appRepositories.settingsRepository,
             secretsRepository = appRepositories.secretsRepository,
+            apiKeyStore = dependencies.apiKeyStore,
             komgaUserApi = dependencies.komgaApi.map { it.userApi },
             komgaLibraryApi = dependencies.komgaApi.map { it.libraryApi },
             komgaAuthState = dependencies.komgaSharedState,
             notifications = dependencies.appNotifications,
             platform = platformType,
-            offlineUserRepository = dependencies.offlineDependencies.repositories.userRepository,
-            offlineServerRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            offlineLibraryApi = dependencies.offlineDependencies.komgaApi.libraryApi,
+            offlineUserRepository = dependencies.offlineDependencies?.repositories?.userRepository,
+            offlineServerRepository = dependencies.offlineDependencies?.repositories?.mediaServerRepository,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
+            offlineLibraryApi = dependencies.offlineDependencies?.komgaApi?.libraryApi,
         )
     }
 
@@ -284,7 +289,7 @@ class ViewModelFactory(
             appNotifications = dependencies.appNotifications,
         )
 
-    fun getSeriesEditDialogViewModel(series: KomgaSeries, onDismissRequest: () -> Unit) =
+    fun getSeriesEditDialogViewModel(series: KomeliaSeries, onDismissRequest: () -> Unit) =
         SeriesEditDialogViewModel(
             series = series,
             onDialogDismiss = onDismissRequest,
@@ -294,7 +299,7 @@ class ViewModelFactory(
             cardWidth = getGridCardWidth(),
         )
 
-    fun getSeriesBulkEditDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
+    fun getSeriesBulkEditDialogViewModel(series: List<KomeliaSeries>, onDismissRequest: () -> Unit) =
         SeriesBulkEditDialogViewModel(
             series = series,
             onDialogDismiss = onDismissRequest,
@@ -315,7 +320,7 @@ class ViewModelFactory(
 
     fun getOneshotEditDialogViewModel(
         seriesId: KomgaSeriesId,
-        series: KomgaSeries?,
+        series: KomeliaSeries?,
         book: KomeliaBook?,
         onDismissRequest: () -> Unit
     ) = OneshotEditDialogViewModel(
@@ -359,7 +364,7 @@ class ViewModelFactory(
             cardWidth = getGridCardWidth(),
         )
 
-    fun getAddToCollectionDialogViewModel(series: List<KomgaSeries>, onDismissRequest: () -> Unit) =
+    fun getAddToCollectionDialogViewModel(series: List<KomeliaSeries>, onDismissRequest: () -> Unit) =
         AddToCollectionDialogViewModel(
             series = series,
             onDismissRequest = onDismissRequest,
@@ -451,7 +456,8 @@ class ViewModelFactory(
             userApi = komgaApi.userApi,
             komgaSharedState = dependencies.komgaSharedState,
             secretsRepository = appRepositories.secretsRepository,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
+            apiKeyStore = dependencies.apiKeyStore,
+            offlineSettingsRepository = dependencies.offlineDependencies?.repositories?.offlineSettingsRepository,
             isOffline = dependencies.isOffline,
             currentServerUrl = appRepositories.settingsRepository.getServerUrl(),
             bookApi = komgaApi.bookApi,
@@ -484,7 +490,7 @@ class ViewModelFactory(
             seriesApi = komgaApi.seriesApi,
             komgaEvents = dependencies.komgaEvents.events,
             cardWidthFlow = getGridCardWidth(),
-            taskEmitter = dependencies.offlineDependencies.taskEmitter
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter
         )
     }
 
@@ -493,7 +499,7 @@ class ViewModelFactory(
             readListId = readListId,
             readListApi = komgaApi.readListApi,
             bookApi = komgaApi.bookApi,
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
+            taskEmitter = dependencies.offlineDependencies?.taskEmitter,
             notifications = dependencies.appNotifications,
             komgaEvents = dependencies.komgaEvents.events,
             cardWidthFlow = getGridCardWidth()
@@ -556,8 +562,17 @@ class ViewModelFactory(
         )
     }
 
+    fun getKomfMangaBakaSettingsViewModel(): KomfMangaBakaSettingsViewModel {
+        return KomfMangaBakaSettingsViewModel(
+            settingsRepository = dependencies.appRepositories.komfSettingsRepository,
+            configClient = dependencies.komfClientFactory.configClient(),
+            appNotifications = dependencies.appNotifications,
+            komfSharedState = komfSharedState
+        )
+    }
+
     fun getKomfIdentifyDialogViewModel(
-        series: KomgaSeries,
+        series: KomeliaSeries,
         onDismissRequest: () -> Unit
     ): KomfIdentifyDialogViewModel {
         return KomfIdentifyDialogViewModel(
@@ -589,6 +604,32 @@ class ViewModelFactory(
             libraryId = KomfServerLibraryId(library.id.value),
             komfMetadataClient = dependencies.komfClientFactory.metadataClient(KOMGA),
             appNotifications = dependencies.appNotifications,
+        )
+    }
+
+    fun getKomfMangaBakaLinkDialogViewModel(
+        series: KomeliaSeries,
+        onDismissRequest: () -> Unit
+    ): KomfMangaBakaLinkViewModel {
+        return KomfMangaBakaLinkViewModel(
+            series = series,
+            mangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
+            appNotifications = dependencies.appNotifications,
+            appEvents = dependencies.komgaEvents,
+            onDismiss = onDismissRequest
+        )
+    }
+
+    fun getKomfMangaBakaUnlinkDialogViewModel(
+        series: KomeliaSeries,
+        onDismissRequest: () -> Unit
+    ): KomfMangaBakaUnlinkViewModel {
+        return KomfMangaBakaUnlinkViewModel(
+            series = series,
+            mangaBakaClient = dependencies.komfClientFactory.mangaBaka(),
+            appNotifications = dependencies.appNotifications,
+            appEvents = dependencies.komgaEvents,
+            onDismiss = onDismissRequest
         )
     }
 
@@ -637,7 +678,7 @@ class ViewModelFactory(
     fun getSeriesBulkActions() = SeriesBulkActions(
         seriesApi = komgaApi.seriesApi,
         komfClient = dependencies.komfClientFactory.metadataClient(KOMGA),
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         notifications = dependencies.appNotifications,
     )
 
@@ -648,7 +689,7 @@ class ViewModelFactory(
 
     fun getBookBulkActions() = BookBulkActions(
         bookApi = komgaApi.bookApi,
-        taskEmitter = dependencies.offlineDependencies.taskEmitter,
+        taskEmitter = dependencies.offlineDependencies?.taskEmitter,
         notifications = dependencies.appNotifications
     )
 
@@ -675,32 +716,34 @@ class ViewModelFactory(
     }
 
     fun getOfflineModeSettingsViewModel(): OfflineSettingsViewModel {
+        val offlineDependencies = checkNotNull(dependencies.offlineDependencies)
         return OfflineSettingsViewModel(
             authState = dependencies.komgaSharedState,
             appNotifications = dependencies.appNotifications,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            userRepository = dependencies.offlineDependencies.repositories.userRepository,
-            serverRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
-            logJournalRepository = dependencies.offlineDependencies.repositories.logJournalRepository,
-            serverDeleteAction = dependencies.offlineDependencies.actions.get(),
-            userDeleteAction = dependencies.offlineDependencies.actions.get(),
+            offlineSettingsRepository = offlineDependencies.repositories.offlineSettingsRepository,
+            userRepository = offlineDependencies.repositories.userRepository,
+            serverRepository = offlineDependencies.repositories.mediaServerRepository,
+            logJournalRepository = offlineDependencies.repositories.logJournalRepository,
+            serverDeleteAction = offlineDependencies.actions.get(),
+            userDeleteAction = offlineDependencies.actions.get(),
             platformContext = dependencies.coilContext,
 
-            taskEmitter = dependencies.offlineDependencies.taskEmitter,
-            downloadEvents = dependencies.offlineDependencies.bookDownloadEvents
+            taskEmitter = offlineDependencies.taskEmitter,
+            downloadEvents = offlineDependencies.bookDownloadEvents
         )
     }
 
     fun getOfflineLoginViewModel(): OfflineLoginViewModel {
+        val offlineDependencies = checkNotNull(dependencies.offlineDependencies)
         return OfflineLoginViewModel(
             appNotifications = dependencies.appNotifications,
-            offlineSettingsRepository = dependencies.offlineDependencies.repositories.offlineSettingsRepository,
-            userRepository = dependencies.offlineDependencies.repositories.userRepository,
-            serverRepository = dependencies.offlineDependencies.repositories.mediaServerRepository,
+            offlineSettingsRepository = offlineDependencies.repositories.offlineSettingsRepository,
+            userRepository = offlineDependencies.repositories.userRepository,
+            serverRepository = offlineDependencies.repositories.mediaServerRepository,
             komgaAuthState = dependencies.komgaSharedState,
-            offlineLibraryApi = dependencies.offlineDependencies.komgaApi.libraryApi,
-            serverDeleteAction = dependencies.offlineDependencies.actions.get(),
-            userDeleteAction = dependencies.offlineDependencies.actions.get(),
+            offlineLibraryApi = offlineDependencies.komgaApi.libraryApi,
+            serverDeleteAction = offlineDependencies.actions.get(),
+            userDeleteAction = offlineDependencies.actions.get(),
         )
     }
 

@@ -4,15 +4,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.oneshot.OneshotEditDialog
 import snd.komelia.ui.dialogs.tabs.TabDialog
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun SeriesEditDialog(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     onDismissRequest: () -> Unit
 ) {
     val viewModelFactory = LocalViewModelFactory.current
@@ -24,10 +28,10 @@ fun SeriesEditDialog(
         OneshotEditDialog(series.id, series, null, onDismissRequest)
     } else {
         TabDialog(
-            title = "Edit ${series.metadata.title}",
+            title = stringResource(Res.string.dialog_edit, series.metadata.title),
             currentTab = vm.currentTab,
             tabs = vm.tabs,
-            confirmationText = "Save",
+            confirmationText = stringResource(Res.string.dialog_save),
             onConfirm = { coroutineScope.launch { vm.saveChanges() } },
             onTabChange = { vm.currentTab = it },
             onDismissRequest = { onDismissRequest() }

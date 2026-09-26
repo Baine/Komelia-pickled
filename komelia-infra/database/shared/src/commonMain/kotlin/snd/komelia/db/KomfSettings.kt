@@ -7,4 +7,5 @@ data class KomfSettings(
     val enabled: Boolean = false,
     val remoteUrl: String = "http://localhost:8085",
     val forceMatch: Boolean = false,
+    val mangaBakaEnabled: Boolean = false
 )

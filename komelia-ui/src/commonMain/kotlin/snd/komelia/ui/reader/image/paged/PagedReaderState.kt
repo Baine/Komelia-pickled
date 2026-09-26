@@ -17,7 +17,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
@@ -28,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
-import snd.komelia.AppNotification
 import snd.komelia.AppNotifications
 import snd.komelia.image.BookImageLoader
 import snd.komelia.image.ReaderImage.PageId
@@ -50,7 +48,6 @@ import snd.komelia.ui.reader.image.ScreenScaleState
 import snd.komelia.ui.reader.image.SpreadIndex
 import snd.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookEnd
 import snd.komelia.ui.reader.image.paged.PagedReaderState.TransitionPage.BookStart
-import snd.komelia.ui.strings.AppStrings
 import snd.komga.client.common.KomgaReadingDirection
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -61,7 +58,6 @@ class PagedReaderState(
     private val appNotifications: AppNotifications,
     private val readerState: ReaderState,
     private val imageLoader: BookImageLoader,
-    private val appStrings: Flow<AppStrings>,
     private val pageChangeFlow: MutableSharedFlow<Unit>,
     val screenScaleState: ScreenScaleState,
 ) {
@@ -104,12 +100,16 @@ class PagedReaderState(
         screenScaleState.setScrollState(null)
         screenScaleState.setScrollOrientation(Orientation.Vertical, false)
 
-        combine(
-            screenScaleState.transformation,
-            screenScaleState.areaSize,
-            readerState.imageStretchToFit
-        ) { }.drop(1)
+
+        combine(screenScaleState.areaSize, readerState.imageStretchToFit) {}
+            .drop(1)
             .conflate()
+            .onEach {
+                val currentPage = currentSpread.value.pages.first().metadata
+                loadPage(spreadIndexOf(currentPage))
+            }.launchIn(stateScope)
+
+        screenScaleState.transformation.drop(1).conflate()
             .onEach {
                 val spread = currentSpread.value
                 updateSpreadImageState(
@@ -121,7 +121,6 @@ class PagedReaderState(
                 val maxPageSize = getMaxPageSize(spread.pages.map { it.metadata }, containerSize)
                 val targetSize = fitToScreenZoom(spread.pages, maxPageSize, layout.value)
                 screenScaleState.setTargetSize(targetSize.toSize())
-                delay(100)
             }
             .launchIn(stateScope)
 
@@ -129,9 +128,6 @@ class PagedReaderState(
             .filterNotNull()
             .onEach { newBook -> onNewBookLoaded(newBook) }
             .launchIn(stateScope)
-
-        val strings = appStrings.first().pagedReader
-        appNotifications.add(AppNotification.Normal("Paged ${strings.forReadingDirection(readingDirection.value)}"))
     }
 
     fun stop() {
@@ -156,7 +152,7 @@ class PagedReaderState(
         pages.forEachIndexed { index, result ->
             if (result.imageResult is ReaderImageResult.Success) {
                 val image = result.imageResult.image
-                val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit)?:maxPageSize
+                val imageDisplaySize = image.calculateSizeForArea(maxPageSize, stretchToFit) ?: maxPageSize
 
                 val imageHorizontalVisibleWidth =
                     (imageDisplaySize.width * zoomFactor - areaSize.width) / 2

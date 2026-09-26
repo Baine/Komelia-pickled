@@ -97,13 +97,12 @@ fun MainView(
 
             if (viewModelFactory == null) return@Surface
 
-            val notificationToaster = rememberToasterState()
-
             CompositionLocalProvider(
                 LocalViewModelFactory provides viewModelFactory,
-                LocalToaster provides notificationToaster,
+                LocalNotifications provides dependencies.appNotifications,
                 LocalKomgaEvents provides dependencies.komgaEvents.events,
                 LocalKomfIntegration provides dependencies.appRepositories.komfSettingsRepository.getKomfEnabled(),
+                LocalKomfMangaBakaIntegration provides dependencies.appRepositories.komfSettingsRepository.getMangaBakaEnabled(),
                 LocalKeyEvents provides keyEvents,
                 LocalPlatform provides platformType,
                 LocalTheme provides theme,
@@ -112,9 +111,10 @@ fun MainView(
                 LocalWindowHeight provides windowHeight,
                 LocalLibraries provides dependencies.komgaSharedState.libraries,
                 LocalReloadEvents provides viewModelFactory.screenReloadEvents,
-                LocalBookDownloadEvents provides dependencies.offlineDependencies.bookDownloadEvents,
+                LocalBookDownloadEvents provides dependencies.offlineDependencies?.bookDownloadEvents,
                 LocalOfflineMode provides dependencies.isOffline,
-                LocalKomgaState provides dependencies.komgaSharedState
+                LocalKomgaState provides dependencies.komgaSharedState,
+                LocalOfflineAvailable provides (dependencies.offlineDependencies != null)
             ) {
                 MainContent(platformType, dependencies.komgaSharedState)
 

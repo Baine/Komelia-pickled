@@ -8,6 +8,7 @@ import snd.komelia.AppRepositories
 import snd.komelia.AppWindowState
 import snd.komelia.KomgaAuthenticationState
 import snd.komelia.ManagedKomgaEvents
+import snd.komelia.http.ApiKeyStore
 import snd.komelia.image.BookImageLoader
 import snd.komelia.image.KomeliaImageDecoder
 import snd.komelia.image.KomeliaPanelDetector
@@ -17,17 +18,15 @@ import snd.komelia.image.processing.ColorCorrectionStep
 import snd.komelia.komga.api.KomgaApi
 import snd.komelia.offline.OfflineDependencies
 import snd.komelia.onnxruntime.OnnxRuntime
-import snd.komelia.ui.strings.AppStrings
 import snd.komelia.updates.AppUpdater
 import snd.komelia.updates.OnnxModelDownloader
 import snd.komelia.updates.OnnxRuntimeInstaller
 import snd.komf.client.KomfClientFactory
 
 data class DependencyContainer(
-    val appStrings: StateFlow<AppStrings>,
     val appRepositories: AppRepositories,
+    val apiKeyStore: ApiKeyStore,
     val komgaApi: StateFlow<KomgaApi>,
-
     val isOffline: StateFlow<Boolean>,
     val komfClientFactory: KomfClientFactory,
     val appNotifications: AppNotifications,
@@ -51,6 +50,6 @@ data class DependencyContainer(
     val upscaler: KomeliaUpscaler?,
     val panelDetector: KomeliaPanelDetector?,
 
-    val offlineDependencies: OfflineDependencies,
+    val offlineDependencies: OfflineDependencies?,
 )
 

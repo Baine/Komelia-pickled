@@ -1,13 +1,14 @@
 package snd.komelia.db.settings
 
-import snd.komelia.image.UpsamplingMode
 import kotlinx.browser.localStorage
-import kotlinx.serialization.json.Json
+import kotlinx.browser.window
 import org.w3c.dom.set
 import snd.komelia.db.AppSettings
 import snd.komelia.db.EpubReaderSettings
 import snd.komelia.db.ImageReaderSettings
 import snd.komelia.db.KomfSettings
+import snd.komelia.db.LocalStorageJson
+import snd.komelia.image.UpsamplingMode
 
 const val appSettingsKey = "appSettings"
 const val imageReaderKey = "imageReader"
@@ -15,9 +16,7 @@ const val epubReaderKey = "epubReader"
 const val komfSettingsKey = "komfSettings"
 
 class LocalStorageSettingsRepository {
-    val json = Json {
-        ignoreUnknownKeys = true
-    }
+    val json = LocalStorageJson.json
 
     fun getSettings(): AppSettings {
         return localStorage.getItem(appSettingsKey)
@@ -52,7 +51,7 @@ class LocalStorageSettingsRepository {
     fun getKomfSettings(): KomfSettings {
         return localStorage.getItem(komfSettingsKey)
             ?.let { json.decodeFromString<KomfSettings>(it) }
-            ?: KomfSettings()
+            ?: KomfSettings(remoteUrl = window.location.href)
     }
 
     fun saveKomfSettings(settings: KomfSettings) {

@@ -7,18 +7,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
+import snd.komelia.LocalKomfViewModelFactory
 import snd.komelia.ui.LoadState
 import snd.komelia.ui.common.components.LoadingMaxSizeIndicator
 import snd.komelia.ui.dialogs.tabs.DialogTab
 import snd.komelia.ui.dialogs.tabs.TabItem
 import snd.komelia.ui.error.formatExceptionMessage
 import snd.komelia.ui.settings.komf.notifications.view.KomfSettingsContent
-import snd.komelia.LocalKomfViewModelFactory
+import snd.komelia.ui.strings.AppStrings
 
 class NotificationsTab : DialogTab {
 
     override fun options() = TabItem(
-        title = "Notifications",
+        title = AppStrings.komfNotifications,
         icon = Icons.Default.Notifications
     )
 

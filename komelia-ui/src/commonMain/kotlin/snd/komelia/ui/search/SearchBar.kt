@@ -47,14 +47,21 @@ import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_books_tab
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_result_in_library
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_search_all
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_search_input_placeholder
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.search_series_tab
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.common.cards.BookSimpleImageCard
 import snd.komelia.ui.common.cards.SeriesSimpleImageCard
 import snd.komelia.ui.common.components.NoPaddingTextField
 import snd.komelia.ui.platform.cursorForHand
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -67,7 +74,7 @@ fun SearchBar(
     onSearchAllClick: (String) -> Unit,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomeliaBook) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     var isFocused by remember { mutableStateOf(false) }
@@ -133,7 +140,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
     isLoading: Boolean,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onSearchAllClick: (String) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     onBookClick: (KomeliaBook) -> Unit,
     onDismiss: () -> Unit,
 ) {
@@ -151,7 +158,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
             .padding(horizontal = 5.dp),
         contentAlignment = Alignment.CenterStart
     ) {
-        Text("Search all...")
+        Text(stringResource(Res.string.search_search_all))
     }
     if (isLoading) LinearProgressIndicator(
         color = MaterialTheme.colorScheme.tertiary,
@@ -164,7 +171,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
     ) {
         val series = searchResults.series
         if (series.isNotEmpty()) {
-            Text(text = "Series")
+            Text(text = stringResource(Res.string.search_series_tab))
             series.forEach {
                 SeriesSearchEntry(
                     series = it,
@@ -179,7 +186,7 @@ private fun ColumnScope.SearchResultsDropDownBox(
         val books = searchResults.books
         if (books.isNotEmpty()) {
             Text(
-                text = "Books",
+                text = stringResource(Res.string.search_books_tab),
                 modifier = Modifier.padding(5.dp)
             )
             books.forEach {
@@ -216,7 +223,7 @@ private fun EntryContainer(
 
 @Composable
 private fun SeriesSearchEntry(
-    series: KomgaSeries,
+    series: KomeliaSeries,
     library: KomgaLibrary?,
     onSeriesClick: () -> Unit,
 ) {
@@ -230,7 +237,7 @@ private fun SeriesSearchEntry(
         )
         Column {
             Text(series.metadata.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            library?.let { Text("in ${library.name}") }
+            library?.let { Text(stringResource(Res.string.search_result_in_library, library.name)) }
         }
     }
 }
@@ -251,7 +258,7 @@ private fun BookSearchEntry(
         )
         Column {
             Text(book.metadata.title, maxLines = 2, overflow = TextOverflow.Ellipsis)
-            library?.let { Text("in ${library.name}") }
+            library?.let { Text(stringResource(Res.string.search_result_in_library, library.name)) }
         }
     }
 }
@@ -269,7 +276,7 @@ fun SearchTextField(
     val focusManager = LocalFocusManager.current
     NoPaddingTextField(
         text = query,
-        placeholder = "Search",
+        placeholder = stringResource(Res.string.search_search_input_placeholder),
         onTextChange = onQueryChange,
         shape = CircleShape,
         colors = OutlinedTextFieldDefaults.colors(

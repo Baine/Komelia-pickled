@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -35,8 +34,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import snd.komelia.ui.LocalStrings
+import snd.komelia.image.coil.KomfMangaBakaCoverRequest
 import snd.komelia.ui.common.images.ThumbnailImage
+import snd.komelia.ui.series.mangabaka.state.MangaBakaTitlesState
+import snd.komelia.ui.strings.AppStrings
+import snd.komf.api.mangabaka.KomfMangaBakaSeries
 import snd.komf.api.metadata.KomfMetadataSeriesSearchResult
 
 @Composable
@@ -47,7 +49,6 @@ fun KomfResultCard(
     isSelected: Boolean,
     onClick: () -> Unit,
 ) {
-
     ResultCardOverlay(modifier = modifier, isSelected = isSelected) {
         ItemCard(
             onClick = onClick,
@@ -67,14 +68,60 @@ fun KomfResultCard(
                     }
                 }
             },
-            content = { ResultDescriptionContent(result) }
+            content = {
+                ResultDescriptionContent(
+                    result.title,
+                    result.url,
+                    AppStrings.forProvider(result.provider)
+                )
+            }
         )
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
+fun KomfMangaBakaResultCard(
+    modifier: Modifier = Modifier,
+    result: KomfMangaBakaSeries,
+    isSelected: Boolean,
+    onClick: () -> Unit,
+) {
+    ResultCardOverlay(modifier = modifier, isSelected = isSelected) {
+        ItemCard(
+            onClick = onClick,
+            containerColor =
+                if (isSelected) MaterialTheme.colorScheme.secondary.copy(alpha = .5f)
+                else MaterialTheme.colorScheme.surfaceVariant,
+
+            image = {
+                result.cover.x350?.x1?.let {
+                    ImageOverlay(isSelected) {
+                        ThumbnailImage(
+                            data = KomfMangaBakaCoverRequest(result.id),
+                            cacheKey = it,
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+            },
+            content = {
+                val title = remember(result) { MangaBakaTitlesState(result).mainTitle.title }
+                ResultDescriptionContent(
+                    title,
+                    result.canonicalUrl,
+                    "MangaBaka"
+                )
+            }
+        )
+    }
+}
+
+@Composable
+private fun ResultDescriptionContent(
+    title: String,
+    url: String?,
+    providerName: String,
+) {
     Column(
         modifier = Modifier
             .height(120.dp)
@@ -82,7 +129,6 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        val strings = LocalStrings.current.komf.providerSettings
         TooltipBox(
             positionProvider = rememberTooltipPositionProvider(TooltipAnchorPosition.Above),
             state = rememberTooltipState(),
@@ -93,7 +139,7 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
                     modifier = Modifier.widthIn(max = 300.dp)
                 ) {
                     Text(
-                        result.title,
+                        title,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(5.dp)
                     )
@@ -101,7 +147,7 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
             }
         ) {
             Text(
-                text = result.title, maxLines = 2,
+                text = title, maxLines = 2,
                 overflow = TextOverflow.Ellipsis,
                 textAlign = TextAlign.Center
             )
@@ -110,12 +156,12 @@ private fun ResultDescriptionContent(result: KomfMetadataSeriesSearchResult) {
         Spacer(Modifier.weight(1f))
         val uriHandler = LocalUriHandler.current
         ElevatedButton(
-            onClick = { result.url?.let { uriHandler.openUri(it) } },
-            enabled = result.url != null,
+            onClick = { url?.let { uriHandler.openUri(it) } },
+            enabled = url != null,
             shape = RoundedCornerShape(5.dp)
         ) {
             Text(
-                text = strings.forProvider(result.provider),
+                text = providerName,
                 fontWeight = FontWeight.Bold,
                 textAlign = TextAlign.Center
             )

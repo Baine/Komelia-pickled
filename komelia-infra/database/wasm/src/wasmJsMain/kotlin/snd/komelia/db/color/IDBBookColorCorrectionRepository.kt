@@ -1,14 +1,15 @@
 package snd.komelia.db.color
 
-import com.juul.indexeddb.*
-import snd.komelia.color.BookColorLevels
-import snd.komelia.color.ColorCurveBookPoints
-import snd.komelia.color.repository.BookColorCorrectionRepository
-import snd.komelia.color.ColorCorrectionType
+import com.juul.indexeddb.Database
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
+import snd.komelia.color.BookColorLevels
+import snd.komelia.color.ColorCorrectionType
+import snd.komelia.color.ColorCurveBookPoints
+import snd.komelia.color.repository.BookColorCorrectionRepository
+import snd.komelia.db.Key
 import snd.komelia.db.color.jsModel.JsBookColorCorrection
 import snd.komelia.db.color.jsModel.JsBookColorLevels
 import snd.komelia.db.color.jsModel.JsColorCurveBookPoints
@@ -39,7 +40,7 @@ class IDBBookColorCorrectionRepository(
 
     private suspend fun fetchType(bookId: KomgaBookId): ColorCorrectionType? {
         return database.transaction(colorCorrectionStore) {
-            (objectStore(colorCorrectionStore).get(IDBKey(bookId.value)) as? JsBookColorCorrection)?.let {
+            (objectStore(colorCorrectionStore).get(Key(bookId.value)) as? JsBookColorCorrection)?.let {
                 ColorCorrectionType.valueOf(it.type)
             }
         }
@@ -48,7 +49,7 @@ class IDBBookColorCorrectionRepository(
     override suspend fun setCurrentType(bookId: KomgaBookId, type: ColorCorrectionType) {
         database.writeTransaction(colorCorrectionStore) {
             val store = objectStore(colorCorrectionStore)
-            store.put(jsBookColorCorrection(bookId, type), IDBKey(bookId.value))
+            store.put(jsBookColorCorrection(bookId, type), Key(bookId.value))
         }
         typeChangeFlow.emit(bookId to type)
     }
@@ -63,9 +64,9 @@ class IDBBookColorCorrectionRepository(
             val curvesStore = objectStore(colorCurvesStore)
             val levelsStore = objectStore(colorLevelsStore)
 
-            curvesStore.delete(IDBKey(bookId.value))
-            levelsStore.delete(IDBKey(bookId.value))
-            correctionStore.delete(IDBKey(bookId.value))
+            curvesStore.delete(Key(bookId.value))
+            levelsStore.delete(Key(bookId.value))
+            correctionStore.delete(Key(bookId.value))
         }
         curveChangeFlow.emit(bookId to null)
         levelsChangeFlow.emit(bookId to null)
@@ -81,21 +82,21 @@ class IDBBookColorCorrectionRepository(
 
     private suspend fun fetchCurve(bookId: KomgaBookId): ColorCurveBookPoints? {
         return database.transaction(colorCurvesStore) {
-            (objectStore(colorCurvesStore).get(IDBKey(bookId.value)) as? JsColorCurveBookPoints)
+            (objectStore(colorCurvesStore).get(Key(bookId.value)) as? JsColorCurveBookPoints)
                 ?.toColorCurveBookPoints()
         }
     }
 
     override suspend fun saveCurve(points: ColorCurveBookPoints) {
         database.writeTransaction(colorCurvesStore) {
-            objectStore(colorCurvesStore).put(points.toJs(), IDBKey(points.bookId.value))
+            objectStore(colorCurvesStore).put(points.toJs(), Key(points.bookId.value))
         }
         curveChangeFlow.emit(points.bookId to points)
     }
 
     override suspend fun deleteCurve(bookId: KomgaBookId) {
         database.writeTransaction(colorCurvesStore) {
-            objectStore(colorCurvesStore).delete(IDBKey(bookId.value))
+            objectStore(colorCurvesStore).delete(Key(bookId.value))
         }
         curveChangeFlow.emit(bookId to null)
     }
@@ -109,21 +110,21 @@ class IDBBookColorCorrectionRepository(
 
     private suspend fun fetchLevels(bookId: KomgaBookId): BookColorLevels? {
         return database.transaction(colorLevelsStore) {
-            (objectStore(colorLevelsStore).get(IDBKey(bookId.value)) as? JsBookColorLevels)
+            (objectStore(colorLevelsStore).get(Key(bookId.value)) as? JsBookColorLevels)
                 ?.toBookColorLevels()
         }
     }
 
     override suspend fun saveLevels(levels: BookColorLevels) {
         database.writeTransaction(colorLevelsStore) {
-            objectStore(colorLevelsStore).put(levels.toJs(), IDBKey(levels.bookId.value))
+            objectStore(colorLevelsStore).put(levels.toJs(), Key(levels.bookId.value))
         }
         levelsChangeFlow.emit(levels.bookId to levels)
     }
 
     override suspend fun deleteLevels(bookId: KomgaBookId) {
         database.writeTransaction(colorLevelsStore) {
-            objectStore(colorLevelsStore).delete(IDBKey(bookId.value))
+            objectStore(colorLevelsStore).delete(Key(bookId.value))
         }
         levelsChangeFlow.emit(bookId to null)
     }

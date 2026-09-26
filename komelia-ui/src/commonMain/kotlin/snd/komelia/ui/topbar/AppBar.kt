@@ -36,9 +36,14 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_go_online
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.topbar_offline
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LocalKeyEvents
 import snd.komelia.ui.LocalWindowState
 import snd.komelia.ui.LocalWindowWidth
@@ -50,7 +55,6 @@ import snd.komelia.ui.search.SearchBar
 import snd.komelia.ui.search.SearchResults
 import snd.komga.client.library.KomgaLibrary
 import snd.komga.client.library.KomgaLibraryId
-import snd.komga.client.series.KomgaSeries
 
 @Composable
 fun AppBar(
@@ -62,7 +66,7 @@ fun AppBar(
     searchResults: SearchResults,
     libraryById: (KomgaLibraryId) -> KomgaLibrary?,
     onBookClick: (KomeliaBook) -> Unit,
-    onSeriesClick: (KomgaSeries) -> Unit,
+    onSeriesClick: (KomeliaSeries) -> Unit,
     onRefreshClick: () -> Unit,
     notificationsState: NotificationsState,
     isOffline: Boolean,
@@ -130,11 +134,11 @@ fun AppBar(
                 modifier = Modifier.align(Alignment.End).padding(end = 10.dp),
                 border = BorderStroke(2.dp, MaterialTheme.colorScheme.errorContainer)
             ) {
-                Text("Offline")
+                Text(stringResource(Res.string.topbar_offline))
             }
             if (showConfirmationDialog) {
                 ConfirmationDialog(
-                    body = "Go Online?",
+                    body = stringResource(Res.string.topbar_go_online),
                     onDialogConfirm = onOfflineModeChange,
                     onDialogDismiss = { showConfirmationDialog = false }
                 )

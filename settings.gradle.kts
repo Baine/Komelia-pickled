@@ -25,7 +25,10 @@ dependencyResolutionManagement {
     }
 }
 
-include(":komelia-app")
+include(":komelia-app:androidApp")
+include(":komelia-app:desktopApp")
+include(":komelia-app:webApp")
+include(":komelia-app:shared")
 include(":komelia-domain:core")
 include(":komelia-domain:offline")
 include(":komelia-domain:komga-api")
@@ -49,4 +52,10 @@ include(":komelia-komf-extension:background")
 include(":komelia-komf-extension:popup")
 include(":komelia-komf-extension:shared")
 
+include(":third_party:ChipTextField:chiptextfield-core")
+include(":third_party:ChipTextField:chiptextfield-m3")
+include(":third_party:compose-sonner:sonner")
 
+includeBuild("third_party/secret-service") {
+    dependencySubstitution { substitute(module("de.swiesend:secret-service")) }
+}

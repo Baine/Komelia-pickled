@@ -11,5 +11,5 @@ actual fun ScreenPullToRefreshBox(
     screenState: Flow<LoadState<*>>,
     onRefresh: () -> Unit,
     minLoadDuration: Long,
-    content: @Composable BoxScope.() -> Unit,
-) { Box { content() } }
+    content: @Composable (BoxScope.() -> Unit)
+) = Box(content = content)

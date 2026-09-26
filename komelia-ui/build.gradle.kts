@@ -1,13 +1,9 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
-
-import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
-    alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.kotlinAtomicfu)
     alias(libs.plugins.kotlinMultiplatform)
+    alias(libs.plugins.androidMultiplatformLibrary)
     alias(libs.plugins.kotlinSerialization)
     alias(libs.plugins.jetbrainsCompose)
     alias(libs.plugins.compose.compiler)
@@ -15,11 +11,13 @@ plugins {
 }
 
 group = "io.github.snd-r.komelia.ui"
-version = "0.9.0"
+version = "unspecified"
 
 kotlin {
-    jvmToolchain(17) // max version https://developer.android.com/build/releases/gradle-plugin#compatibility
-    androidTarget {
+    android {
+        namespace = "io.github.snd_r.komelia.ui"
+        compileSdk = libs.versions.android.compileSdk.get().toInt()
+        minSdk = libs.versions.android.minSdk.get().toInt()
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_17)
             freeCompilerArgs.addAll(
@@ -27,6 +25,7 @@ kotlin {
                 "plugin:org.jetbrains.kotlin.parcelize:additionalAnnotation=snd.komelia.ui.platform.CommonParcelize",
             )
         }
+        androidResources { enable = true }
     }
 
     jvm {
@@ -35,7 +34,6 @@ kotlin {
 
     @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
-        outputModuleName = "komelia-core"
         browser()
     }
 
@@ -54,8 +52,8 @@ kotlin {
             api(projects.komeliaInfra.onnxruntime.api)
             implementation(projects.komeliaInfra.webview)
             implementation(projects.komeliaInfra.database.transaction)
-            implementation(libs.chiptextfield.m3)
-            implementation(libs.compose.sonner)
+            implementation(projects.thirdParty.chipTextField.chiptextfieldM3)
+            implementation(projects.thirdParty.composeSonner.sonner)
 
             api(libs.compose.runtime)
             api(libs.compose.foundation)
@@ -67,6 +65,7 @@ kotlin {
             implementation(libs.kotlinx.datetime)
             implementation(libs.kotlinx.coroutines.core)
             implementation(libs.kotlinx.serialization.core)
+            implementation(libs.kotlinx.serialization.json)
 
             implementation(libs.cache4k)
             implementation(libs.coil)
@@ -79,15 +78,18 @@ kotlin {
             implementation(libs.komga.client)
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.client.encoding)
             implementation(libs.ktor.serialization.kotlinx.json)
             implementation(libs.ksoup)
+            implementation(libs.markdown)
+            implementation(libs.markdown.renderer.m3)
             implementation(libs.reorderable)
             implementation(libs.richEditor.compose.get().toString()){
                 exclude(group = "org.jetbrains.compose.material", module = "material")
             }
-            implementation(libs.voyager.screenmodel)
-            implementation(libs.voyager.navigator)
-            implementation(libs.voyager.transition)
+            api(libs.voyager.screenmodel)
+            api(libs.voyager.navigator)
+            api(libs.voyager.transition)
 
         }
 
@@ -97,6 +99,8 @@ kotlin {
             implementation(libs.commons.compress)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logback.android)
+            implementation(libs.okhttp)
+            implementation(libs.okhttp.logging.interceptor)
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
             implementation(projects.komeliaInfra.onnxruntime.jvm)
@@ -114,6 +118,9 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.logback.core)
             implementation(libs.logback.classic)
+            implementation(libs.okhttp)
+            implementation(libs.okhttp.logging.interceptor)
+            implementation(libs.secret.service)
             implementation(libs.slf4j.api)
             implementation(projects.komeliaInfra.imageDecoder.vips)
             implementation(projects.komeliaInfra.onnxruntime.jvm)
@@ -131,18 +138,5 @@ kotlin {
                 freeCompilerArgs.add("-Xexpect-actual-classes")
             }
         }
-    }
-}
-
-android {
-    namespace = "io.github.snd_r.komelia.ui"
-    compileSdk = libs.versions.android.compileSdk.get().toInt()
-
-    defaultConfig {
-        minSdk = libs.versions.android.minSdk.get().toInt()
-    }
-    compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
     }
 }

@@ -1,16 +1,13 @@
 package snd.komelia.ui.login
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -23,31 +20,36 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component1
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component2
-import androidx.compose.ui.focus.FocusRequester.Companion.FocusRequesterFactory.component3
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_android_lan_access_dialog
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_cancel
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_go_offline
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_login
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_offline_mode
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_password
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_retry
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_title
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_url
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_username
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.login_with_another_account
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import snd.komelia.ui.LocalPlatform
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.ui.common.components.OutlinedHttpTextField
 import snd.komelia.ui.common.components.withTextFieldNavigation
-import snd.komelia.ui.platform.PlatformType
-import snd.komelia.ui.platform.PlatformType.DESKTOP
-import snd.komelia.ui.platform.PlatformType.MOBILE
-import snd.komelia.ui.platform.cursorForHand
+import snd.komelia.ui.dialogs.ConfirmationDialog
+import snd.komelia.ui.dialogs.permissions.AccessLocalNetworkRequestDialog
+import snd.komelia.ui.platform.hasLanPermission
+import kotlin.time.Duration.Companion.seconds
 
 
 @Composable
@@ -70,84 +72,30 @@ fun LoginContent(
 
     var showAutoLoginError by remember { mutableStateOf(true) }
     if (autoLoginError != null && showAutoLoginError) {
-        Column(
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                autoLoginError,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.error
-            )
-
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                Button(onClick = { showAutoLoginError = false }) { Text("Login with another account") }
-                if (canGoOfflineAsCurrentUser) {
-                    Button(onClick = goOfflineAsCurrentUser) { Text("Go offline") }
-                }
-
-                Button(onClick = onAutoLoginRetry) { Text("Retry") }
-            }
-        }
+        AutoLoginError(
+            autoLoginError = autoLoginError,
+            onAutoLoginRetry = onAutoLoginRetry,
+            canGoOfflineAsCurrentUser = canGoOfflineAsCurrentUser,
+            goOfflineAsCurrentUser = goOfflineAsCurrentUser,
+            onErrorDismiss = { showAutoLoginError = false }
+        )
     } else {
-        val platform = LocalPlatform.current
-        when (platform) {
-            MOBILE, DESKTOP -> Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                Text("Komga Login")
-                LoginForm(
-                    url = url,
-                    onUrlChange = onUrlChange,
-                    user = user,
-                    onUserChange = onUserChange,
-                    password = password,
-                    onPasswordChange = onPasswordChange,
-                    errorMessage = userLoginError,
-                    onLogin = onLogin,
-                    offlineIsAvailable = offlineIsAvailable,
-                    onOfflineSelect = onOfflineSelect,
-                    textFieldsModifier = Modifier
-                )
-            }
-
-            PlatformType.WEB_KOMF -> Column(
-                horizontalAlignment = Alignment.Start,
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                val uriHandler = LocalUriHandler.current
-                Column {
-                    Text("Full-featured web client for Komga")
-                    Text(
-                        "Requires adding this host and port to Komga CORS configuration",
-                        color = MaterialTheme.colorScheme.secondary,
-                        textDecoration = TextDecoration.Underline,
-                        modifier = Modifier.clickable {
-                            uriHandler.openUri("https://komga.org/docs/installation/configuration/#komga_cors_allowed_origins--komgacorsallowed-origins-origins")
-                        }.padding(2.dp).cursorForHand()
-                    )
-                }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    LoginForm(
-                        url = url,
-                        onUrlChange = onUrlChange,
-                        user = user,
-                        onUserChange = onUserChange,
-                        password = password,
-                        onPasswordChange = onPasswordChange,
-                        errorMessage = userLoginError,
-                        onLogin = onLogin,
-                        offlineIsAvailable = offlineIsAvailable,
-                        onOfflineSelect = onOfflineSelect,
-                        textFieldsModifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Text(stringResource(Res.string.login_title))
+            LoginForm(
+                url = url,
+                onUrlChange = onUrlChange,
+                user = user,
+                onUserChange = onUserChange,
+                password = password,
+                onPasswordChange = onPasswordChange,
+                errorMessage = userLoginError,
+                onLogin = onLogin,
+                offlineIsAvailable = offlineIsAvailable,
+                onOfflineSelect = onOfflineSelect,
+            )
         }
-
     }
-
 }
 
 @Composable
@@ -162,17 +110,16 @@ fun ColumnScope.LoginForm(
     onLogin: () -> Unit,
     offlineIsAvailable: Boolean,
     onOfflineSelect: () -> Unit,
-    textFieldsModifier: Modifier
 ) {
-
-    val coroutineScope = rememberCoroutineScope()
+    val hasLanPermission = hasLanPermission()
+    var showLanPermissionRequest by remember { mutableStateOf(false) }
     val (first, second, third) = remember { FocusRequester.createRefs() }
 
     OutlinedHttpTextField(
         value = url,
         onValueChange = onUrlChange,
-        label = { Text("Server Url") },
-        modifier = textFieldsModifier
+        label = { Text(stringResource(Res.string.login_url)) },
+        modifier = Modifier
             .withTextFieldNavigation()
             .focusRequester(first)
             .focusProperties { next = second },
@@ -182,8 +129,8 @@ fun ColumnScope.LoginForm(
     OutlinedTextField(
         value = user,
         onValueChange = onUserChange,
-        label = { Text("Username") },
-        modifier = textFieldsModifier
+        label = { Text(stringResource(Res.string.login_username)) },
+        modifier = Modifier
             .withTextFieldNavigation()
             .focusRequester(second)
             .focusProperties { next = third }
@@ -193,10 +140,13 @@ fun ColumnScope.LoginForm(
         value = password,
         onValueChange = onPasswordChange,
         visualTransformation = PasswordVisualTransformation(),
-        label = { Text("Password") },
-        modifier = textFieldsModifier
+        label = { Text(stringResource(Res.string.login_password)) },
+        modifier = Modifier
             .withTextFieldNavigation(
-                onEnterPress = { coroutineScope.launch { onLogin() } }
+                onEnterPress = {
+                    if (hasLanPermission) onLogin()
+                    else showLanPermissionRequest = true
+                }
             )
             .focusRequester(third),
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password)
@@ -208,19 +158,67 @@ fun ColumnScope.LoginForm(
 
     Row(horizontalArrangement = Arrangement.spacedBy(50.dp)) {
         if (offlineIsAvailable) {
-            TextButton(onClick = onOfflineSelect) { Text("Offline mode") }
+            TextButton(onClick = onOfflineSelect) { Text(stringResource(Res.string.login_offline_mode)) }
         }
-        Button(onClick = { onLogin() }) { Text("Login") }
+        Button(onClick = {
+            if (hasLanPermission) onLogin()
+            else showLanPermissionRequest = true
+        }) { Text(stringResource(Res.string.login_login)) }
     }
 
+    if (showLanPermissionRequest) {
+        LanAccessRequestDialog {
+            showLanPermissionRequest = false
+            onLogin()
+        }
+    }
     Spacer(Modifier.imePadding())
 }
 
 @Composable
+fun AutoLoginError(
+    autoLoginError: String,
+    onAutoLoginRetry: () -> Unit,
+    canGoOfflineAsCurrentUser: Boolean,
+    goOfflineAsCurrentUser: () -> Unit,
+    onErrorDismiss: () -> Unit
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (!hasLanPermission()) {
+            LanAccessRequestDialog { onAutoLoginRetry() }
+        }
+
+        Text(
+            autoLoginError,
+            style = MaterialTheme.typography.titleMedium,
+            color = MaterialTheme.colorScheme.error
+        )
+
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Button(onClick = {
+                onErrorDismiss()
+            }) { Text(stringResource(Res.string.login_with_another_account)) }
+            if (canGoOfflineAsCurrentUser) {
+                Button(onClick = goOfflineAsCurrentUser) { Text(stringResource(Res.string.login_go_offline)) }
+            }
+
+            Button(onClick = onAutoLoginRetry) { Text(stringResource(Res.string.login_retry)) }
+        }
+    }
+}
+
+@Composable
 fun LoginLoadingContent(onCancel: () -> Unit) {
+
     var showCancelButton by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) {
-        delay(5000)
+        delay(5.seconds)
         showCancelButton = true
     }
     Column(
@@ -228,12 +226,31 @@ fun LoginLoadingContent(onCancel: () -> Unit) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-
         CircularProgressIndicator()
         if (showCancelButton) {
             Spacer(Modifier.height(100.dp))
-            Button(onClick = onCancel) { Text("Cancel login attempt") }
+            Button(onClick = onCancel) { Text(stringResource(Res.string.login_cancel)) }
         }
+    }
+}
 
+@Composable
+private fun LanAccessRequestDialog(onComplete: () -> Unit) {
+    var showLanAccessExplanation by remember { mutableStateOf(true) }
+    var showLanAccessRequest by remember { mutableStateOf(false) }
+    if (showLanAccessExplanation) {
+        ConfirmationDialog(
+            body = stringResource(Res.string.login_android_lan_access_dialog),
+            onDialogConfirm = {
+                showLanAccessExplanation = false
+                showLanAccessRequest = true
+            },
+            buttonCancel = null,
+            onDialogDismiss = {}
+
+        )
+    }
+    if (showLanAccessRequest) {
+        AccessLocalNetworkRequestDialog { onComplete() }
     }
 }

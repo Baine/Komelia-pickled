@@ -5,8 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.Res
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_edit
+import io.github.snd_r.komelia.ui.komelia_ui.generated.resources.dialog_save
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.ui.LoadState.Error
 import snd.komelia.ui.LoadState.Loading
 import snd.komelia.ui.LoadState.Success
@@ -14,13 +19,12 @@ import snd.komelia.ui.LoadState.Uninitialized
 import snd.komelia.ui.LocalViewModelFactory
 import snd.komelia.ui.dialogs.DialogLoadIndicator
 import snd.komelia.ui.dialogs.tabs.TabDialog
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 
 @Composable
 fun OneshotEditDialog(
     seriesId: KomgaSeriesId,
-    series: KomgaSeries?,
+    series: KomeliaSeries?,
     book: KomeliaBook?,
     onDismissRequest: () -> Unit,
 ) {
@@ -33,10 +37,10 @@ fun OneshotEditDialog(
     when (val loadState = vm.loadState.collectAsState().value) {
         Uninitialized, Loading -> DialogLoadIndicator(onDismissRequest)
         is Success -> TabDialog(
-            title = "Edit ${loadState.value.seriesMetadataState.series.metadata.title}",
+            title = stringResource(Res.string.dialog_edit, loadState.value.seriesMetadataState.series.metadata.title),
             currentTab = loadState.value.currentTab,
             tabs = loadState.value.tabs,
-            confirmationText = "Save",
+            confirmationText = stringResource(Res.string.dialog_save),
             onConfirm = { coroutineScope.launch { vm.saveChanges() } },
             onTabChange = { loadState.value.currentTab = it },
             onDismissRequest = onDismissRequest

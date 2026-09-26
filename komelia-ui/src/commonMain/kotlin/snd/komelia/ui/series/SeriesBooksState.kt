@@ -22,6 +22,7 @@ import snd.komelia.AppNotifications
 import snd.komelia.komga.api.KomgaBookApi
 import snd.komelia.komga.api.KomgaReferentialApi
 import snd.komelia.komga.api.model.KomeliaBook
+import snd.komelia.komga.api.model.KomeliaSeries
 import snd.komelia.offline.tasks.OfflineTaskEmitter
 import snd.komelia.settings.CommonSettingsRepository
 import snd.komelia.settings.model.BooksLayout
@@ -33,17 +34,16 @@ import snd.komga.client.book.KomgaBookId
 import snd.komga.client.book.KomgaBookReadProgressUpdateRequest
 import snd.komga.client.common.KomgaPageRequest
 import snd.komga.client.search.allOfBooks
-import snd.komga.client.series.KomgaSeries
 import snd.komga.client.series.KomgaSeriesId
 import snd.komga.client.sse.KomgaEvent
 
 class SeriesBooksState(
-    private val series: StateFlow<KomgaSeries?>,
+    private val series: StateFlow<KomeliaSeries?>,
     private val settingsRepository: CommonSettingsRepository,
     private val notifications: AppNotifications,
     private val bookApi: KomgaBookApi,
     private val events: SharedFlow<KomgaEvent>,
-    private val taskEmitter: OfflineTaskEmitter,
+    private val taskEmitter: OfflineTaskEmitter?,
     private val screenModelScope: CoroutineScope,
     val cardWidth: StateFlow<Dp>,
     referentialApi: KomgaReferentialApi,
@@ -178,8 +178,8 @@ class SeriesBooksState(
         },
         markAsUnread = { books -> launchWithReloadLock { books.forEach { bookApi.deleteReadProgress(it.id) } } },
         delete = { books -> launchWithReloadLock { books.forEach { bookApi.deleteBook(it.id) } } },
-        download = { books -> launchWithReloadLock { books.forEach { taskEmitter.downloadBook(it.id) } } },
-        deleteDownloaded = { books -> launchWithReloadLock { books.forEach { taskEmitter.deleteBook(it.id) } } }
+        download = { books -> launchWithReloadLock { books.forEach { requireNotNull(taskEmitter).downloadBook(it.id) } } },
+        deleteDownloaded = { books -> launchWithReloadLock { books.forEach { taskEmitter?.deleteBook(it.id) } } }
     )
 
     private suspend fun launchWithReloadLock(block: suspend () -> Unit) {

@@ -33,4 +33,12 @@ class KomfSettingsRepositoryWrapper(
         wrapper.transform { it.copy(forceMatch = force) }
     }
 
+    override fun getMangaBakaEnabled(): Flow<Boolean> {
+        return wrapper.mapState { it.mangaBakaEnabled }
+    }
+
+    override suspend fun putMangaBakaEnabled(enabled: Boolean) {
+        wrapper.transform { it.copy(mangaBakaEnabled = enabled) }
+    }
+
 }
