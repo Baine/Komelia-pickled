@@ -12,6 +12,7 @@ import io.ktor.http.*
 import io.ktor.util.*
 import io.ktor.util.date.*
 import io.ktor.utils.io.*
+import kotlinx.browser.window
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -46,7 +47,20 @@ private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
     val komfUrl = komfSettingsRepository.getKomfUrl().stateIn(coroutineScope)
     val komfClientFactory = KomfClientFactory(
         ktor = createKtorClient(),
-        baseUrl = { komfUrl.value },
+        // the repo default remoteUrl is window.location.href — right for the komf-served
+        // webui, but here window.location is the Kavita/Komga page, so a blank or
+        // page-origin URL means "never configured". Fail every request with an actionable
+        // message (shown verbatim by AppNotifications) instead of hitting the media server.
+        baseUrl = {
+            val url = komfUrl.value
+            val origin = window.location.origin
+            if (url.isBlank() || url == origin || url.startsWith("$origin/") ||
+                url.startsWith("$origin?") || url.startsWith("$origin#")
+            ) {
+                error("Komf server URL is not configured — set it in the extension settings (Connection tab)")
+            }
+            url
+        },
     )
     val vmFactory = KomfViewModelFactory(
         komfClientFactory = komfClientFactory,
