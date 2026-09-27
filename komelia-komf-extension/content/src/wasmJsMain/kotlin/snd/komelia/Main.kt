@@ -27,6 +27,7 @@ import kotlin.coroutines.CoroutineContext
 val logger = KotlinLogging.logger("Komf")
 
 fun main() {
+    patchPromiseRealm()
     val coroutineScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     coroutineScope.launch {
         val app = initApplication(coroutineScope)
@@ -58,6 +59,39 @@ private suspend fun initApplication(coroutineScope: CoroutineScope): AppState {
 }
 
 private val sseRequestAttr = AttributeKey<Boolean>("SSERequestFlag")
+
+// Firefox content scripts run against the page realm: every Promise produced by
+// fetch/Response.blob/json/text/arrayBuffer/ReadableStreamReader.read is a PAGE-realm
+// promise, which fails Kotlin/Wasm's injected `instanceof Promise` cast check
+// ("Cannot cast instance of Promise to Promise: incompatible types") in ktor, coil and
+// compose glue alike (all raw in the shipped bundle - only snd.komelia's own @JsFuns were
+// wrapped). Re-wrap every entry point with an extension-realm Promise.resolve():
+// functionally transparent, same-realm no-op on Chrome, fixes all sites at once.
+@JsFun(
+    """() => {
+    const g = globalThis;
+    if (g.__komeliaPromiseRealmPatch) return;
+    g.__komeliaPromiseRealmPatch = true;
+    const wrap = (o, m) => {
+        const f = o[m];
+        if (typeof f !== "function") return;
+        o[m] = function (...a) { return Promise.resolve(f.apply(this, a)); };
+    };
+    wrap(g, "fetch");
+    if (g.Response) for (const m of ["blob", "json", "text", "arrayBuffer"]) wrap(g.Response.prototype, m);
+    if (g.Blob) for (const m of ["arrayBuffer", "text", "stream"]) wrap(g.Blob.prototype, m);
+    if (g.ReadableStream) {
+        const p = g.ReadableStream.prototype, gr = p.getReader;
+        if (typeof gr === "function") p.getReader = function (...a) {
+            const r = gr.apply(this, a);
+            if (r) { wrap(r, "read"); wrap(r, "cancel"); }
+            return r;
+        };
+    }
+}"""
+)
+private external fun patchPromiseRealm()
+
 private val CustomResponse: AttributeKey<Any> = AttributeKey("CustomResponse")
 
 // firefox returns empty list when calling Array.from(headers.keys()) on fetch response
