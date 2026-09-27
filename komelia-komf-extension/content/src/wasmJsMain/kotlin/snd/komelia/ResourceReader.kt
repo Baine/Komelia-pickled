@@ -52,7 +52,7 @@ internal object CustomWasmResourceReader : ResourceReader {
             if (!response.ok) {
                 throw MissingResourceException(resPath)
             }
-            val blob = response.blob().await()
+            val blob = jsExportResponseAsBlob(response).await()
             cachedResponse = blob
             return blob
         }
@@ -121,6 +121,10 @@ private external class AbortController {
 // Re-wrapping via the extension-realm Promise.resolve passes the check in both browsers.
 @JsFun("(url, signal) => Promise.resolve(window.fetch(url, { signal }))")
 private external fun jsFetchWithSignal(url: String, signal: AbortSignal): Promise<Response>
+
+// page-realm Response.blob() yields a page-realm Promise too — same re-wrap as above
+@JsFun("(response) => Promise.resolve(response.blob())")
+private external fun jsExportResponseAsBlob(response: Response): Promise<Blob>
 
 @Suppress("UNCHECKED_CAST")
 private suspend fun <T> cancellableFetch(url: String): T = suspendCancellableCoroutine { cont ->
